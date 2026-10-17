@@ -1,0 +1,413 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Styles.Resources>
+    <ResourceDictionary>
+      <!-- Ranglar ikki variantda: Yorug' (asl ko'rinish) va Qorong'i. Faqat DynamicResource bilan ishlating. -->
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="InkBrush" Color="#1C1F23" />
+          <SolidColorBrush x:Key="MutedBrush" Color="#5B6270" />
+          <SolidColorBrush x:Key="FaintBrush" Color="#9AA1AC" />
+          <SolidColorBrush x:Key="SubtleTextBrush" Color="#3D434C" />
+          <SolidColorBrush x:Key="BorderBrushLight" Color="#DDE1E6" />
+          <SolidColorBrush x:Key="GroundBrush" Color="#EEF0F3" />
+          <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="SurfaceAltBrush" Color="#F7F8FA" />
+          <SolidColorBrush x:Key="ComputedBrush" Color="#F3F4F6" />
+          <SolidColorBrush x:Key="ComputedCellBrush" Color="#0D1C2533" />
+          <SolidColorBrush x:Key="ZebraBrush" Color="#F3F6FA" />
+          <SolidColorBrush x:Key="RowHoverBrush" Color="#EEF4FF" />
+          <SolidColorBrush x:Key="RowSelectedBrush" Color="#DCE8FD" />
+          <SolidColorBrush x:Key="HeaderBrush" Color="#F3F5F8" />
+          <SolidColorBrush x:Key="GridLineBrush" Color="#D3D9E1" />
+          <SolidColorBrush x:Key="GridLineVBrush" Color="#D9DEE5" />
+          <SolidColorBrush x:Key="CellBorderBrush" Color="#ECEEF1" />
+          <SolidColorBrush x:Key="TableBorderBrush" Color="#D5D9DF" />
+          <SolidColorBrush x:Key="NegativeBrush" Color="#C0262D" />
+          <SolidColorBrush x:Key="ManualBrush" Color="#0B57D0" />
+          <SolidColorBrush x:Key="NavActiveBrush" Color="#E8F0FE" />
+          <SolidColorBrush x:Key="NavActiveText" Color="#0B3D91" />
+          <SolidColorBrush x:Key="OkBg" Color="#E3F4E8" />
+          <SolidColorBrush x:Key="OkText" Color="#145C2B" />
+          <SolidColorBrush x:Key="SuccessBrush" Color="#1E7B3A" />
+          <SolidColorBrush x:Key="DebtBg" Color="#FFEBD9" />
+          <SolidColorBrush x:Key="DebtText" Color="#8A3B00" />
+          <SolidColorBrush x:Key="WarnBg" Color="#FFF7ED" />
+          <SolidColorBrush x:Key="WarnBorder" Color="#F3D9BC" />
+          <SolidColorBrush x:Key="WarnText" Color="#4A2600" />
+          <SolidColorBrush x:Key="WarnTitle" Color="#6B2E00" />
+          <SolidColorBrush x:Key="ClosedBg" Color="#E4E7EB" />
+          <SolidColorBrush x:Key="NeutralBg" Color="#EEF0F3" />
+          <SolidColorBrush x:Key="DangerBg" Color="#FDECEC" />
+          <SolidColorBrush x:Key="DangerText" Color="#8F1D22" />
+          <SolidColorBrush x:Key="FooterBg" Color="#1C1F23" />
+          <SolidColorBrush x:Key="FooterText" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AttFullBrush" Color="#CDEBD6" />
+          <SolidColorBrush x:Key="AttPartialBrush" Color="#FBEAB0" />
+          <SolidColorBrush x:Key="AttShortBrush" Color="#F8CFCF" />
+          <!-- H12: ism katagi — bugun kechikmoqda / kelmadi (katakdan yengilroq, ism o'qiladi) -->
+          <SolidColorBrush x:Key="NameLateBrush" Color="#FDF1C7" />
+          <SolidColorBrush x:Key="NameAbsentBrush" Color="#FCE1E1" />
+          <SolidColorBrush x:Key="AttOpenBrush" Color="#FFD7B0" />
+          <SolidColorBrush x:Key="AttSundayBrush" Color="#FAFAFB" />
+          <SolidColorBrush x:Key="TodayBrush" Color="#0057D9" />
+          <SolidColorBrush x:Key="TodayText" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="SelectedCellBrush" Color="#0057D9" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="InkBrush" Color="#E6E8EB" />
+          <SolidColorBrush x:Key="MutedBrush" Color="#A3AAB5" />
+          <SolidColorBrush x:Key="FaintBrush" Color="#737B87" />
+          <SolidColorBrush x:Key="SubtleTextBrush" Color="#C5CAD2" />
+          <SolidColorBrush x:Key="BorderBrushLight" Color="#3A3F47" />
+          <SolidColorBrush x:Key="GroundBrush" Color="#16181C" />
+          <SolidColorBrush x:Key="SurfaceBrush" Color="#1F2227" />
+          <SolidColorBrush x:Key="SurfaceAltBrush" Color="#272A30" />
+          <SolidColorBrush x:Key="ComputedBrush" Color="#2A2D33" />
+          <SolidColorBrush x:Key="ComputedCellBrush" Color="#14FFFFFF" />
+          <SolidColorBrush x:Key="ZebraBrush" Color="#24272D" />
+          <SolidColorBrush x:Key="RowHoverBrush" Color="#2A3445" />
+          <SolidColorBrush x:Key="RowSelectedBrush" Color="#2D4366" />
+          <SolidColorBrush x:Key="HeaderBrush" Color="#2A2D33" />
+          <SolidColorBrush x:Key="GridLineBrush" Color="#383D45" />
+          <SolidColorBrush x:Key="GridLineVBrush" Color="#33373E" />
+          <SolidColorBrush x:Key="CellBorderBrush" Color="#30343B" />
+          <SolidColorBrush x:Key="TableBorderBrush" Color="#3A3F47" />
+          <SolidColorBrush x:Key="NegativeBrush" Color="#FF7A7F" />
+          <SolidColorBrush x:Key="ManualBrush" Color="#86B4FF" />
+          <SolidColorBrush x:Key="NavActiveBrush" Color="#1E3254" />
+          <SolidColorBrush x:Key="NavActiveText" Color="#A8C7FA" />
+          <SolidColorBrush x:Key="OkBg" Color="#1B3626" />
+          <SolidColorBrush x:Key="OkText" Color="#86D9A0" />
+          <SolidColorBrush x:Key="SuccessBrush" Color="#4CC27A" />
+          <SolidColorBrush x:Key="DebtBg" Color="#4A2C14" />
+          <SolidColorBrush x:Key="DebtText" Color="#FFBE85" />
+          <SolidColorBrush x:Key="WarnBg" Color="#33271A" />
+          <SolidColorBrush x:Key="WarnBorder" Color="#6B4A26" />
+          <SolidColorBrush x:Key="WarnText" Color="#F2D2AE" />
+          <SolidColorBrush x:Key="WarnTitle" Color="#FFC48A" />
+          <SolidColorBrush x:Key="ClosedBg" Color="#33373E" />
+          <SolidColorBrush x:Key="NeutralBg" Color="#2A2D33" />
+          <SolidColorBrush x:Key="DangerBg" Color="#46201F" />
+          <SolidColorBrush x:Key="DangerText" Color="#FF8F94" />
+          <SolidColorBrush x:Key="FooterBg" Color="#0F1114" />
+          <SolidColorBrush x:Key="FooterText" Color="#E6E8EB" />
+          <SolidColorBrush x:Key="AttFullBrush" Color="#1F4A2D" />
+          <SolidColorBrush x:Key="AttPartialBrush" Color="#544516" />
+          <SolidColorBrush x:Key="AttShortBrush" Color="#5A2528" />
+          <SolidColorBrush x:Key="NameLateBrush" Color="#3D3417" />
+          <SolidColorBrush x:Key="NameAbsentBrush" Color="#45201F" />
+          <SolidColorBrush x:Key="AttOpenBrush" Color="#6A3B14" />
+          <SolidColorBrush x:Key="AttSundayBrush" Color="#1B1E22" />
+          <SolidColorBrush x:Key="TodayBrush" Color="#2F6FE0" />
+          <SolidColorBrush x:Key="TodayText" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="SelectedCellBrush" Color="#6FA4FF" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <Style Selector="Window">
+    <Setter Property="Icon" Value="/Assets/oylik.ico" />
+    <Setter Property="FontFamily" Value="Segoe UI, Inter, sans-serif" />
+    <Setter Property="FontSize" Value="14" />
+  </Style>
+
+  <!-- Chap navigatsiya -->
+  <Style Selector="Button.nav">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+    <Setter Property="Padding" Value="12,10" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+  <Style Selector="Button.nav.active">
+    <Setter Property="Background" Value="{DynamicResource NavActiveBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource NavActiveText}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="Path.icon">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="StrokeThickness" Value="1.8" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!-- Panel kartalar -->
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushLight}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+  </Style>
+
+  <Style Selector="TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="TextBlock.h1">
+    <Setter Property="FontSize" Value="22" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+  <Style Selector="TextBlock.stat">
+    <Setter Property="FontSize" Value="20" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+  <Style Selector="TextBlock.num">
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!-- Belgilar -->
+  <Style Selector="Border.badge">
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="10,3" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.badge.open">
+    <Setter Property="Background" Value="{DynamicResource OkBg}" />
+  </Style>
+  <Style Selector="Border.badge.open TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource OkText}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Border.badge.closed">
+    <Setter Property="Background" Value="{DynamicResource ClosedBg}" />
+  </Style>
+  <Style Selector="Border.badge.closed TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource SubtleTextBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Border.debt">
+    <Setter Property="Background" Value="{DynamicResource DebtBg}" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="5,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.debt TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource DebtText}" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Border.warn">
+    <Setter Property="Background" Value="{DynamicResource WarnBg}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="16,12" />
+  </Style>
+
+  <!-- Oylik jadvali -->
+  <!-- Qatorlarni ajratish: zebra, hover, tanlangan -->
+  <Style Selector="DataGrid DataGridRow">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+  </Style>
+  <Style Selector="DataGrid DataGridRow:nth-child(2n)">
+    <Setter Property="Background" Value="{DynamicResource ZebraBrush}" />
+  </Style>
+  <Style Selector="DataGrid DataGridRow:pointerover">
+    <Setter Property="Background" Value="{DynamicResource RowHoverBrush}" />
+  </Style>
+  <Style Selector="DataGrid DataGridRow:selected">
+    <Setter Property="Background" Value="{DynamicResource RowSelectedBrush}" />
+  </Style>
+  <Style Selector="DataGrid DataGridColumnHeader">
+    <Setter Property="Background" Value="{DynamicResource HeaderBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SubtleTextBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource GridLineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,1,1" />
+  </Style>
+  <!-- Kataklar orasidagi chiziqlar -->
+  <Style Selector="DataGrid">
+    <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource GridLineBrush}" />
+    <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource GridLineVBrush}" />
+  </Style>
+
+  <!-- Hisoblanadigan ustunlar: yarim shaffof kulrang — zebra ko'rinib turadi -->
+  <Style Selector="DataGrid.payroll DataGridCell.computed">
+    <Setter Property="Background" Value="{DynamicResource ComputedCellBrush}" />
+  </Style>
+  <Style Selector="DataGrid.payroll DataGridCell.name">
+    <Setter Property="FontWeight" Value="Medium" />
+  </Style>
+  <Style Selector="DataGrid.payroll DataGridCell.advancecell">
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="TextBlock.advance">
+    <Setter Property="Foreground" Value="{DynamicResource ManualBrush}" />
+    <Setter Property="TextDecorations" Value="Underline" />
+  </Style>
+  <Style Selector="TextBlock.advance.zero">
+    <Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+    <Setter Property="TextDecorations" Value="{x:Null}" />
+  </Style>
+  <!-- Tahrir katagi: TextBox katakni to'liq egallaydi, bitta qator, chegarasi — tanlangan katak kabi (accent) -->
+  <Style Selector="DataGridCell TextBox">
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Height" Value="NaN" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="TextWrapping" Value="NoWrap" />
+    <Setter Property="AcceptsReturn" Value="False" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SelectedCellBrush}" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+  </Style>
+  <Style Selector="DataGridCell TextBox:pointerover, DataGridCell TextBox:focus, DataGridCell TextBox:focus-within">
+    <Setter Property="BorderBrush" Value="{DynamicResource SelectedCellBrush}" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+  </Style>
+  <Style Selector="DataGridCell.num TextBox">
+    <Setter Property="TextAlignment" Value="Right" />
+  </Style>
+
+  <Style Selector="DataGridCell.num">
+    <Setter Property="HorizontalContentAlignment" Value="Right" />
+  </Style>
+  <Style Selector="DataGrid.payroll DataGridCell.center">
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector="DataGrid.payroll DataGridCell.daily">
+    <Setter Property="Foreground" Value="{ReflectionBinding DailyBrush}" />
+    <Setter Property="FontStyle" Value="{ReflectionBinding DailyFontStyle}" />
+  </Style>
+  <Style Selector="DataGrid.payroll DataGridCell.remainder">
+    <Setter Property="Foreground" Value="{ReflectionBinding RemainderBrush}" />
+    <Setter Property="FontWeight" Value="{ReflectionBinding RemainderWeight}" />
+  </Style>
+  <!-- H9: Schedule qatori tafsiloti (Summa, Kun, Jami kataklarida) -->
+  <Style Selector="DataGrid.payroll DataGridCell.schedtip">
+    <Setter Property="ToolTip.Tip" Value="{ReflectionBinding ScheduleTip}" />
+  </Style>
+  <Style Selector="DataGrid.payroll DataGridColumnHeader">
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="Button.link">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <!-- A9 davomat maslahati -->
+  <Style Selector="Button.attendance">
+    <Setter Property="Foreground" Value="{DynamicResource ManualBrush}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Button.attendance:disabled /template/ ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.attendance.same:disabled /template/ ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+  </Style>
+  <Style Selector="Button.link:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <!-- Sozlamalar → Ko'rinish: segmentli mavzu tanlovi -->
+  <Style Selector="Border.segmented">
+    <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushLight}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+  <Style Selector="RadioButton.segment">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="PART_Bg" Background="{TemplateBinding Background}" CornerRadius="7" Padding="14,8">
+          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="RadioButton.segment:pointerover">
+    <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+  </Style>
+  <Style Selector="RadioButton.segment:checked">
+    <Setter Property="Background" Value="{DynamicResource NavActiveBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource NavActiveText}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- Jadval ichidagi ComboBox (Xodimlar - Tarmoq): katak kabi, chegarasiz -->
+  <Style Selector="DataGridCell ComboBox.cell">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Padding" Value="12,0,6,0" />
+  </Style>
+
+  <!-- Tarmoq filtri: segmentli ListBox -->
+  <Style Selector="ListBox.segments">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBox.segments ListBoxItem">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}" CornerRadius="7" Padding="14,6">
+          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Foreground="{TemplateBinding Foreground}" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="MinHeight" Value="0" />
+  </Style>
+  <Style Selector="ListBox.segments ListBoxItem:pointerover">
+    <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+  </Style>
+  <Style Selector="ListBox.segments ListBoxItem:selected">
+    <Setter Property="Background" Value="{DynamicResource NavActiveBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource NavActiveText}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- Sidebar tepasi: til tanlovi va quyosh/oy tugmasi -->
+  <Style Selector="ComboBox.lang">
+    <Setter Property="Height" Value="34" />
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+  <Style Selector="Button.themetoggle">
+    <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushLight}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Width" Value="34" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.themetoggle:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource NavActiveBrush}" />
+  </Style>
+</Styles>

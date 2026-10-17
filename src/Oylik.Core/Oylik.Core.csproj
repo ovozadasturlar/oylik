@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <InternalsVisibleTo Include="Oylik.Core.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- H14: juftlik chegarasi konstantalari (Api.DefaultMaxShift, Api.ShiftPairingSlack) — dublikatsiz -->
+    <ProjectReference Include="..\Oylik.Contracts\Oylik.Contracts.csproj" />
+  </ItemGroup>
+</Project>

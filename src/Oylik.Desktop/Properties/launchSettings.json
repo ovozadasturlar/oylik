@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "Oylik (demo)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "OYLIK_HOME": "D:\\Prepared\\ish haqi\\demo\\data"
+      }
+    },
+    "Oylik (haqiqiy baza)": {
+      "commandName": "Project"
+    }
+  }
+}

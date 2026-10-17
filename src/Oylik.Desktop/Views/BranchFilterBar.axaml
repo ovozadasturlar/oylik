@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Oylik.Desktop.ViewModels"
+             xmlns:r="using:Oylik.Desktop.Resources"
+             x:Class="Oylik.Desktop.Views.BranchFilterBar"
+             x:DataType="vm:MainWindowViewModel"
+             IsVisible="{Binding ShowBranchFilter}" VerticalAlignment="Center">
+  <!-- 3.9: Barchasi · tarmoqlar · Belgilanmagan — tanlov ekranlar o'rtasida umumiy -->
+  <Border Classes="segmented" ToolTip.Tip="{r:T BranchFilterTip}">
+    <ListBox Classes="segments" ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranchOption}">
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Orientation="Horizontal" Spacing="4" />
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:BranchOption">
+          <TextBlock Text="{Binding Label}" />
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Border>
+</UserControl>

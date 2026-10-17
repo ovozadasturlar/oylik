@@ -1,0 +1,251 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Oylik.Desktop.ViewModels"
+             xmlns:r="using:Oylik.Desktop.Resources"
+             x:Class="Oylik.Desktop.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="24,20,24,24" Spacing="16" MaxWidth="760" HorizontalAlignment="Left">
+      <TextBlock Text="{r:T NavSettings}" Classes="h1" />
+
+      <!-- Ko'rinish: eng yuqorida. Mavzu va til sidebar tepasidagi tanlovlar bilan sinxron (MainWindowViewModel). -->
+      <Border Classes="card appearance" Padding="24">
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="32" RowSpacing="14">
+          <TextBlock Grid.ColumnSpan="2" Text="{r:T AppearanceSection}" FontWeight="Bold" FontSize="15" />
+          <StackPanel Grid.Row="1" Spacing="6">
+            <TextBlock Text="{r:T ThemeLabel}" Classes="muted" FontWeight="SemiBold" />
+            <Border Classes="segmented">
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <RadioButton GroupName="theme" Classes="segment" IsChecked="{Binding Main.IsLightTheme}">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Path Classes="icon" Stroke="{Binding $parent[RadioButton].Foreground}"
+                          Data="M12,8 A4,4 0 1 0 12,16 A4,4 0 1 0 12,8 M12,2 V4 M12,20 V22 M2,12 H4 M20,12 H22 M4.9,4.9 L6.3,6.3 M17.7,17.7 L19.1,19.1 M4.9,19.1 L6.3,17.7 M17.7,6.3 L19.1,4.9" />
+                    <TextBlock Text="{r:T ThemeLight}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </RadioButton>
+                <RadioButton GroupName="theme" Classes="segment" IsChecked="{Binding Main.IsDarkTheme}">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Path Classes="icon" Stroke="{Binding $parent[RadioButton].Foreground}"
+                          Data="M20,14.5 A8,8 0 1 1 9.5,4 A6.5,6.5 0 0 0 20,14.5 Z" />
+                    <TextBlock Text="{r:T ThemeDark}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </RadioButton>
+                <RadioButton GroupName="theme" Classes="segment" IsChecked="{Binding Main.IsSystemTheme}">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Path Classes="icon" Stroke="{Binding $parent[RadioButton].Foreground}"
+                          Data="M3,4 H21 V16 H3 Z M9,20 H15 M12,16 V20" />
+                    <TextBlock Text="{r:T ThemeSystem}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </RadioButton>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <StackPanel Grid.Row="1" Grid.Column="1" Spacing="6" MaxWidth="280" HorizontalAlignment="Left">
+            <TextBlock Text="{r:T LanguageSection}" Classes="muted" FontWeight="SemiBold" />
+            <ComboBox ItemsSource="{Binding Main.LanguageOptions}" SelectedIndex="{Binding Main.LanguageIndex}" MinWidth="220" Height="42" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+
+      <Border Classes="card" Padding="24">
+        <StackPanel Spacing="16">
+          <StackPanel Spacing="4">
+            <TextBlock Text="{r:T CompanyName}" Classes="muted" FontWeight="SemiBold" />
+            <TextBox Text="{Binding CompanyName, UpdateSourceTrigger=LostFocus}" LostFocus="Commit" />
+          </StackPanel>
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+            <StackPanel Spacing="4">
+              <TextBlock Text="{r:T DaysInMonth}" Classes="muted" FontWeight="SemiBold" />
+              <NumericUpDown Value="{Binding DaysInMonth}" Minimum="1" Maximum="31" Increment="1" FormatString="0" LostFocus="Commit" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Text="{r:T HoursPerDay}" Classes="muted" FontWeight="SemiBold" />
+              <NumericUpDown Value="{Binding HoursPerDay}" Minimum="1" Maximum="24" Increment="1" FormatString="0" LostFocus="Commit" />
+            </StackPanel>
+          </Grid>
+          <TextBlock Text="{r:T DaysWarning}" Classes="muted" TextWrapping="Wrap" />
+          <ToggleSwitch IsChecked="{Binding ShortInputEnabled}" OnContent="{r:T ShortInput}" OffContent="{r:T ShortInput}" />
+        </StackPanel>
+      </Border>
+
+      <!-- 3.9 Tarmoqlar -->
+      <Border Classes="card" Padding="24">
+        <StackPanel Spacing="10">
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Content="{r:T AddBranch}" Command="{Binding AddBranchCommand}" />
+            <TextBlock Text="{r:T BranchesSection}" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+          </DockPanel>
+          <TextBlock Text="{r:T BranchesHint}" Classes="muted" TextWrapping="Wrap" />
+          <ItemsControl ItemsSource="{Binding Branches}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:BranchItem">
+                <Grid ColumnDefinitions="*,Auto,40" ColumnSpacing="16" Margin="0,4">
+                  <TextBox Text="{Binding NameText, UpdateSourceTrigger=LostFocus}" MaxLength="100" />
+                  <CheckBox Grid.Column="1" IsChecked="{Binding IsActive}" Content="{r:T BranchActive}" VerticalAlignment="Center" />
+                  <Button Grid.Column="2" Classes="link" Content="✕" Foreground="{DynamicResource NegativeBrush}" HorizontalAlignment="Center"
+                          Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" ToolTip.Tip="{r:T Delete}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- 5.10 Ish jadvallari va hisob siyosati (2.2) -->
+      <Border Classes="card" Padding="24">
+        <StackPanel Spacing="10">
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Content="{r:T AddSchedule}" Command="{Binding AddScheduleCommand}" />
+            <TextBlock Text="{r:T SchedulesSection}" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+          </DockPanel>
+          <TextBlock Text="{r:T SchedulesHint}" Classes="muted" TextWrapping="Wrap" />
+          <ItemsControl ItemsSource="{Binding ScheduleItems}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:ScheduleItem">
+                <Border BorderBrush="{DynamicResource BorderBrushLight}" BorderThickness="0,0,0,1" Padding="0,8">
+                  <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                      <Button Classes="link" Content="{r:T Edit}" Foreground="{DynamicResource ManualBrush}" Command="{Binding EditCommand}" />
+                      <Button Classes="link" Content="{r:T CopyAction}" Foreground="{DynamicResource ManualBrush}" Command="{Binding CopyCommand}" />
+                      <Button Classes="link" Content="✕" Foreground="{DynamicResource NegativeBrush}" Command="{Binding DeleteCommand}"
+                              IsVisible="{Binding CanDelete}" ToolTip.Tip="{r:T Delete}" />
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Summary}" Classes="muted" />
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="{r:T PolicySection}" FontWeight="Bold" Margin="0,8,0,0" />
+          <TextBlock Text="{r:T PolicyHint}" Classes="muted" TextWrapping="Wrap" />
+          <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="12">
+            <StackPanel Spacing="4">
+              <TextBlock Text="{r:T LateGrace}" Classes="muted" FontWeight="SemiBold" />
+              <NumericUpDown Value="{Binding LateGraceMinutes}" Minimum="0" Maximum="180" Increment="1" FormatString="0" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Text="{r:T AbsentAfter}" Classes="muted" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <NumericUpDown Value="{Binding AbsentAfterMinutes}" Minimum="1" Maximum="1440" Increment="5" FormatString="0" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="4">
+              <TextBlock Text="{r:T OvertimePolicyLabel}" Classes="muted" FontWeight="SemiBold" />
+              <ComboBox ItemsSource="{Binding OvertimeOptions}" SelectedIndex="{Binding OvertimePolicyIndex}" HorizontalAlignment="Stretch" />
+            </StackPanel>
+            <StackPanel Grid.Row="1" Spacing="4">
+              <TextBlock Text="{r:T GreenPercent}" Classes="muted" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <NumericUpDown Value="{Binding GreenPercent}" Minimum="1" Maximum="100" Increment="1" FormatString="0" />
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+              <TextBlock Text="{r:T YellowPercent}" Classes="muted" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <NumericUpDown Value="{Binding YellowPercent}" Minimum="0" Maximum="100" Increment="1" FormatString="0" />
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="2" Spacing="4">
+              <TextBlock Text="{r:T OvertimeValueLabel}" Classes="muted" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <NumericUpDown Value="{Binding OvertimeValue}" Minimum="0" Maximum="10000000" Increment="0.5" FormatString="0.##" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" Padding="24">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{r:T BackupSection}" FontWeight="Bold" FontSize="15" />
+          <TextBlock Text="{Binding BackupInfo}" />
+          <StackPanel Spacing="4">
+            <TextBlock Text="{r:T BackupFolder}" Classes="muted" FontWeight="SemiBold" />
+            <DockPanel>
+              <Button DockPanel.Dock="Right" Content="{r:T Browse}" Command="{Binding BrowseCommand}" Margin="8,0,0,0" />
+              <TextBox Text="{Binding BackupFolder, UpdateSourceTrigger=LostFocus}" Watermark="{r:T Optional}" LostFocus="Commit" />
+            </DockPanel>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="{r:T BackupNow}" Command="{Binding BackupNowCommand}" />
+            <Button Content="{r:T OpenDataFolder}" Command="{Binding OpenDataFolderCommand}" />
+          </StackPanel>
+          <TextBlock Text="{Binding DataFolder}" Classes="muted" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" Padding="24">
+        <StackPanel Spacing="14">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}" IsVisible="{Binding Sync.IsConnected}" />
+              <Ellipse Width="8" Height="8" Fill="{DynamicResource FaintBrush}" IsVisible="{Binding !Sync.IsConnected}" />
+              <TextBlock Text="{Binding Sync.StatusText}" Classes="muted" />
+            </StackPanel>
+            <TextBlock Text="{r:T ServerSection}" FontWeight="Bold" FontSize="15" />
+          </DockPanel>
+
+          <!-- 6.1: bitta server, ikki manzil — avval lokal, javob bo'lmasa global -->
+          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+            <StackPanel Spacing="4">
+              <TextBlock Text="{r:T LocalServerUrl}" Classes="muted" FontWeight="SemiBold" />
+              <TextBox Text="{Binding LocalServerUrl}" Watermark="http://192.168.1.19:5000" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Text="{r:T GlobalServerUrl}" Classes="muted" FontWeight="SemiBold" />
+              <TextBox Text="{Binding GlobalServerUrl}" Watermark="https://oylik.example.uz" />
+            </StackPanel>
+            <StackPanel Grid.Row="1" Spacing="4">
+              <TextBlock Text="{r:T RegistrationKey}" Classes="muted" FontWeight="SemiBold" />
+              <TextBox Text="{Binding RegistrationKey}" PasswordChar="•" Watermark="{r:T RegistrationKeyHint}" />
+            </StackPanel>
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{r:T ServerAddressesHint}" Classes="muted" TextWrapping="Wrap" VerticalAlignment="Bottom" />
+          </Grid>
+          <WrapPanel ItemSpacing="8" LineSpacing="8">
+            <Button Content="{r:T ConnectServer}" Theme="{DynamicResource SolidButton}" Classes="Primary"
+                    Command="{Binding ConnectCommand}" IsEnabled="{Binding !IsConnecting}" />
+            <Button Content="{r:T SyncNow}" Command="{Binding SyncNowCommand}" IsVisible="{Binding IsServerConfigured}" />
+            <Button Content="{r:T DisconnectServer}" Command="{Binding DisconnectCommand}" IsVisible="{Binding IsServerConfigured}" />
+          </WrapPanel>
+          <TextBlock Text="{Binding ServerMessage}" TextWrapping="Wrap" FontWeight="SemiBold"
+                     IsVisible="{Binding ServerMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+          <StackPanel Spacing="4">
+            <TextBlock Text="{r:T InstallationId}" Classes="muted" FontWeight="SemiBold" />
+            <SelectableTextBlock Text="{Binding InstallationId}" FontFamily="Consolas, monospace" />
+          </StackPanel>
+
+          <Separator />
+
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Content="{r:T ShowQr}" Command="{Binding ShowQrCommand}" IsEnabled="{Binding IsServerConfigured}" />
+            <StackPanel Spacing="2">
+              <TextBlock Text="{r:T PhonesSection}" FontWeight="Bold" />
+              <TextBlock Text="{r:T PhonesHint}" Classes="muted" TextWrapping="Wrap" />
+            </StackPanel>
+          </DockPanel>
+          <TextBlock Text="{r:T NoDevices}" Classes="muted" IsVisible="{Binding !Devices.Count}" />
+          <ItemsControl ItemsSource="{Binding Devices}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:DeviceItem">
+                <Border BorderBrush="{DynamicResource BorderBrushLight}" BorderThickness="0,0,0,1" Padding="0,8">
+                  <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="{r:T DeactivateDevice}" Classes="link" Foreground="{DynamicResource DangerText}"
+                            Command="{Binding DeactivateCommand}" IsVisible="{Binding IsActive}" VerticalAlignment="Center" />
+                    <StackPanel Spacing="2">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding StateText}" Classes="muted" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock Text="{Binding PairedText}" Classes="muted" />
+                        <TextBlock Text="{Binding LastSeenText}" Classes="muted" />
+                      </StackPanel>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

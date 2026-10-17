@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Oylik.Desktop.ViewModels"
+             xmlns:r="using:Oylik.Desktop.Resources"
+             x:Class="Oylik.Desktop.Views.PeriodsView"
+             x:DataType="vm:PeriodsViewModel">
+  <DockPanel Margin="24,20,24,16">
+    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,16" ItemSpacing="10" LineSpacing="10">
+      <TextBlock Text="{r:T NavPeriods}" Classes="h1" VerticalAlignment="Center" Margin="0,0,16,0" />
+      <Button Content="{Binding NewPeriodText}" Command="{Binding NewPeriodCommand}" Classes="Primary" Theme="{DynamicResource SolidButton}" />
+      <Button Content="{r:T OpenPeriod}" Command="{Binding OpenCommand}" />
+      <Button Content="{r:T ClosePeriod}" Command="{Binding CloseCommand}" />
+      <Button Content="{r:T ReopenPeriod}" Command="{Binding ReopenCommand}" />
+    </WrapPanel>
+
+    <Border DockPanel.Dock="Bottom" Classes="warn" Margin="0,16,0,0">
+      <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource WarnText}" LineHeight="20"
+                 Text="{r:T PeriodsHint}" />
+    </Border>
+
+    <Border Classes="card" ClipToBounds="True">
+      <DataGrid x:Name="Grid" ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" IsReadOnly="True"
+                AutoGenerateColumns="False" GridLinesVisibility="All" HeadersVisibility="Column"
+                SelectionMode="Single" RowHeight="44" DoubleTapped="OpenSelected">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="{r:T ColMonth}" Binding="{Binding Month}" Width="*" x:DataType="vm:PeriodListItem" />
+          <DataGridTemplateColumn Header="{r:T ColStatus}" Width="130">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:PeriodListItem">
+                <Panel Margin="12,0" HorizontalAlignment="Left">
+                  <Border Classes="badge open" IsVisible="{Binding IsOpen}"><TextBlock Text="{Binding Status}" FontSize="12" /></Border>
+                  <Border Classes="badge closed" IsVisible="{Binding IsClosed}"><TextBlock Text="{Binding Status}" FontSize="12" /></Border>
+                </Panel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{r:T Employees}" Binding="{Binding Count}" CellStyleClasses="num" Width="100" x:DataType="vm:PeriodListItem" />
+          <DataGridTextColumn Header="{r:T TotalSum}" Binding="{Binding Total}" CellStyleClasses="num" Width="150" x:DataType="vm:PeriodListItem" />
+          <DataGridTextColumn Header="{r:T AdvanceSum}" Binding="{Binding Advance}" CellStyleClasses="num" Width="150" x:DataType="vm:PeriodListItem" />
+          <DataGridTextColumn Header="{r:T RemainderSum}" Binding="{Binding Remainder}" CellStyleClasses="num" Width="150" x:DataType="vm:PeriodListItem" />
+          <DataGridTextColumn Header="{r:T ColClosedAt}" Binding="{Binding ClosedAt}" Width="160" x:DataType="vm:PeriodListItem" />
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
+  </DockPanel>
+</UserControl>

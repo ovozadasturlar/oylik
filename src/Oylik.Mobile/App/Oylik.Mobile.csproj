@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Qorovul ilovasi (TZ 7): faqat Android, Keldi/Ketdi. PUL MA'LUMOTI YO'Q. Oylik.sln ga qo'shilmaydi — Oylik.Mobile.sln. -->
+
+  <PropertyGroup>
+    <!-- Directory.Build.props global net10.0 beradi — bu yerda faqat Android. -->
+    <TargetFramework>net10.0-android</TargetFramework>
+    <TargetFrameworks></TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Oylik.Mobile</RootNamespace>
+    <AssemblyName>Oylik.Mobile</AssemblyName>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <MauiXamlInflator>SourceGen</MauiXamlInflator>
+    <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+
+    <ApplicationTitle>Oylik Qorovul</ApplicationTitle>
+    <ApplicationId>uz.oylik.qorovul</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>8</ApplicationVersion>
+
+    <SupportedOSPlatformVersion>26.0</SupportedOSPlatformVersion>
+
+    <!-- Shifrlanmagan http:// (LAN/ofis serveri, emulator 10.0.2.2). Server HTTPS bo'lsa: -p:OylikAllowHttp=false -->
+    <OylikAllowHttp Condition="'$(OylikAllowHttp)' == ''">true</OylikAllowHttp>
+    <DefineConstants Condition="'$(OylikAllowHttp)' == 'true'">$(DefineConstants);OYLIK_ALLOW_HTTP</DefineConstants>
+
+    <AndroidSdkDirectory Condition="'$(AndroidSdkDirectory)' == '' And Exists('C:\Program Files (x86)\Android\android-sdk')">C:\Program Files (x86)\Android\android-sdk</AndroidSdkDirectory>
+    <JavaSdkDirectory Condition="'$(JavaSdkDirectory)' == '' And Exists('C:\Program Files\Android\openjdk\jdk-21.0.8')">C:\Program Files\Android\openjdk\jdk-21.0.8</JavaSdkDirectory>
+  </PropertyGroup>
+
+  <!-- Release: imzolangan APK (Play Market'siz tarqatish). Kalit va parol — signing\signing.props (loyiha ichida, zaxira nusxa oling). -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <AndroidPackageFormats>apk</AndroidPackageFormats>
+    <RuntimeIdentifiers>android-arm64;android-arm;android-x64</RuntimeIdentifiers>
+    <AndroidKeyStore>true</AndroidKeyStore>
+  </PropertyGroup>
+  <Import Project="signing\signing.props" Condition="'$(Configuration)' == 'Release' And Exists('signing\signing.props')" />
+
+  <ItemGroup>
+    <!-- Adaptive icon: fon (gradient) + belgi; ForegroundScale 0.4 — belgi ~42dp (72dp ko'rinadigan doiraning ~60%): safe zone (108dp dan markaziy 66dp) ichida, MIUI kabi kattaroq kesadigan launcherlarda ham chetdan joy qoladi. Yasash: Resources/AppIcon/make_appicon.py.
+         DIQQAT: ForegroundScale o'zgarsa Resizetizer keshni yangilamaydi — obj/<Config>/net10.0-android/resizetizer ni o'chirib build qiling. -->
+    <MauiIcon Include="Resources\AppIcon\appicon.png" ForegroundFile="Resources\AppIcon\appicon_foreground.png" ForegroundScale="0.4" />
+    <MauiSplashScreen Include="Resources\Splash\splash.png" Color="#F4F5F7" BaseSize="128,128" />
+    <MauiImage Include="Resources\Images\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="ZXing.Net.Maui.Controls" Version="0.10.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Logic\Oylik.Mobile.Logic.csproj" />
+    <ProjectReference Include="..\..\Oylik.Contracts\Oylik.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,332 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Oylik.Desktop.ViewModels"
+             xmlns:r="using:Oylik.Desktop.Resources"
+             xmlns:v="using:Oylik.Desktop.Views"
+             x:Class="Oylik.Desktop.Views.AttendanceView"
+             x:DataType="vm:AttendanceViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Border.legend">
+      <Setter Property="Width" Value="14" />
+      <Setter Property="Height" Value="14" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.hdr">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    </Style>
+    <Style Selector="Border.cell">
+      <Setter Property="Width" Value="30" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Border.cell TextBlock">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.sum">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CellBorderBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+    <Style Selector="Border.sum TextBlock">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0,0,10,0" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="Border.panel">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushLight}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="18,16" />
+    </Style>
+    <Style Selector="TextBlock.h2">
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel Margin="24,20,24,16">
+
+    <!-- Yuqori panel: sarlavha, oy, qidirish, legenda -->
+    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,16" ItemSpacing="12" LineSpacing="10">
+      <TextBlock Text="{r:T AttendanceTitle}" Classes="h1" VerticalAlignment="Center" />
+      <Border Classes="card" Padding="4" CornerRadius="8">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <Button Content="◀" Command="{Binding PrevMonthCommand}" Width="36" Height="36" Padding="0" ToolTip.Tip="{r:T PrevMonth}" />
+          <TextBlock Text="{Binding MonthLabel}" FontSize="16" FontWeight="Bold" MinWidth="140" TextAlignment="Center" VerticalAlignment="Center" />
+          <Button Content="▶" Command="{Binding NextMonthCommand}" Width="36" Height="36" Padding="0" ToolTip.Tip="{r:T NextMonth}" />
+        </StackPanel>
+      </Border>
+      <v:BranchFilterBar DataContext="{Binding Main}" />
+      <TextBox Text="{Binding SearchText}" Watermark="{r:T SearchEmployee}" Width="200" Height="40" VerticalContentAlignment="Center" />
+      <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center" TextElement.FontSize="12">
+        <StackPanel Orientation="Horizontal" Spacing="6"><Border Classes="legend" Background="{DynamicResource AttFullBrush}" /><TextBlock Text="{r:T LegendFull}" /></StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="6"><Border Classes="legend" Background="{DynamicResource AttPartialBrush}" /><TextBlock Text="{r:T LegendPartial}" /></StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="6"><Border Classes="legend" Background="{DynamicResource AttShortBrush}" /><TextBlock Text="{r:T LegendShort}" /></StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <Border Classes="legend" Background="{DynamicResource AttOpenBrush}"><TextBlock Text="?" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource DebtText}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+          <TextBlock Text="{r:T LegendOpen}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="6"><Border Classes="legend" BorderBrush="{DynamicResource BorderBrushLight}" BorderThickness="1" /><TextBlock Text="{r:T LegendAbsent}" /></StackPanel>
+      </StackPanel>
+      <!-- H12: jadval bo'yicha xodimlar -->
+      <Border IsVisible="{Binding HasScheduleRows}" BorderBrush="{DynamicResource BorderBrushLight}" BorderThickness="1,0,0,0" Padding="12,0,0,0" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="14" TextElement.FontSize="12">
+          <TextBlock Text="{r:T LegendSchedule}" FontWeight="SemiBold" />
+          <StackPanel Orientation="Horizontal" Spacing="6"><Border Classes="legend" Background="{DynamicResource AttPartialBrush}" /><TextBlock Text="{r:T LegendLate}" /></StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6"><Border Classes="legend" Background="{DynamicResource AttShortBrush}" /><TextBlock Text="{r:T LegendNoShow}" /></StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Border Classes="legend" Background="{DynamicResource OkBg}"><TextBlock Text="•" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+            <TextBlock Text="{r:T LegendPresent}" />
+          </StackPanel>
+          <TextBlock Text="{r:T LegendDayEnd}" Foreground="{DynamicResource MutedBrush}" />
+          <StackPanel Orientation="Horizontal" Spacing="6"><Border Classes="legend" Background="{DynamicResource AttFullBrush}" /><TextBlock Text="{Binding LegendDoneGreen}" /></StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6"><Border Classes="legend" Background="{DynamicResource AttPartialBrush}" /><TextBlock Text="{Binding LegendDoneYellow}" /></StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6"><Border Classes="legend" Background="{DynamicResource AttShortBrush}" /><TextBlock Text="{Binding LegendDoneRed}" /></StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6"><Border Classes="legend" BorderBrush="{DynamicResource BorderBrushLight}" BorderThickness="1" /><TextBlock Text="{r:T LegendOff}" /></StackPanel>
+        </StackPanel>
+      </Border>
+    </WrapPanel>
+
+    <!-- Pastki panellar: Bugun · Tasdiqlash kerak · Kun tafsiloti -->
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="1*,1.4*,1.1*" ColumnSpacing="16" Margin="0,16,0,0" MaxHeight="300">
+
+      <Border Classes="panel">
+        <DockPanel>
+          <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <TextBlock DockPanel.Dock="Right" Text="{r:T TodayRefresh}" Classes="muted" VerticalAlignment="Bottom" />
+            <TextBlock Text="{Binding TodayTitle}" Classes="h2" />
+          </DockPanel>
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="*,*,*,*" ColumnSpacing="6" Margin="0,0,0,10">
+            <Border Background="{DynamicResource OkBg}" CornerRadius="8" Padding="8,6">
+              <StackPanel>
+                <TextBlock Text="{r:T Inside}" FontSize="11" Foreground="{DynamicResource OkText}" />
+                <TextBlock Text="{Binding InsideCount}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource OkText}" />
+              </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Background="{DynamicResource NeutralBg}" CornerRadius="8" Padding="8,6">
+              <StackPanel>
+                <TextBlock Text="{r:T Left}" FontSize="11" Foreground="{DynamicResource SubtleTextBrush}" />
+                <TextBlock Text="{Binding LeftCount}" FontSize="22" FontWeight="Bold" />
+              </StackPanel>
+            </Border>
+            <!-- H12: smena boshlangan, hali kelmagan (jadval bo'yicha xodimlar) -->
+            <Border Grid.Column="2" Background="{DynamicResource WarnBg}" CornerRadius="8" Padding="8,6">
+              <StackPanel>
+                <TextBlock Text="{r:T LateTile}" FontSize="11" Foreground="{DynamicResource WarnTitle}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding LateCount}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource WarnTitle}" />
+              </StackPanel>
+            </Border>
+            <Border Grid.Column="3" Background="{DynamicResource DangerBg}" CornerRadius="8" Padding="8,6">
+              <StackPanel>
+                <TextBlock Text="{r:T Absent}" FontSize="11" Foreground="{DynamicResource DangerText}" />
+                <TextBlock Text="{Binding AbsentCount}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource DangerText}" />
+              </StackPanel>
+            </Border>
+          </Grid>
+          <ScrollViewer>
+            <StackPanel Spacing="6" TextElement.FontSize="13">
+              <TextBlock TextWrapping="Wrap" IsVisible="{Binding InsideCount}">
+                <Run Text="{r:T Inside}" FontWeight="SemiBold" Foreground="{DynamicResource OkText}" /><Run Text=": " /><Run Text="{Binding InsideNames}" />
+              </TextBlock>
+              <TextBlock TextWrapping="Wrap" IsVisible="{Binding LeftCount}">
+                <Run Text="{r:T Left}" FontWeight="SemiBold" /><Run Text=": " /><Run Text="{Binding LeftNames}" />
+              </TextBlock>
+              <TextBlock TextWrapping="Wrap" IsVisible="{Binding LateCount}">
+                <Run Text="{r:T LateList}" FontWeight="SemiBold" Foreground="{DynamicResource WarnTitle}" /><Run Text=": " /><Run Text="{Binding LateNames}" />
+              </TextBlock>
+              <TextBlock TextWrapping="Wrap" IsVisible="{Binding AbsentCount}">
+                <Run Text="{r:T Absent}" FontWeight="SemiBold" Foreground="{DynamicResource DangerText}" /><Run Text=": " /><Run Text="{Binding AbsentNames}" />
+              </TextBlock>
+            </StackPanel>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+
+      <Border Grid.Column="1" Classes="panel" BorderBrush="{DynamicResource WarnBorder}">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="{Binding IssuesTitle}" Classes="h2" Foreground="{DynamicResource WarnTitle}" Margin="0,0,0,10" />
+          <TextBlock DockPanel.Dock="Top" Text="{r:T NoIssues}" Classes="muted" IsVisible="{Binding !HasIssues}" />
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Issues}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:IssueViewModel">
+                  <Border Background="{DynamicResource WarnBg}" CornerRadius="8" Padding="12,8">
+                    <StackPanel Spacing="6">
+                      <StackPanel Background="Transparent" Cursor="Hand" Tapped="OnIssueTapped">
+                        <TextBlock TextWrapping="Wrap">
+                          <Run Text="{Binding Name}" FontWeight="Bold" /><Run Text=" · " /><Run Text="{Binding When}" />
+                        </TextBlock>
+                        <TextBlock Text="{Binding Problem}" FontSize="12" Foreground="{DynamicResource WarnTitle}" TextWrapping="Wrap" />
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding InputLabel}" FontSize="12" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding Time}" Width="64" Height="32" MinHeight="32" Padding="6,0" VerticalContentAlignment="Center" />
+                        <Button Content="{Binding SaveText}" Command="{Binding SaveCommand}" Height="32" Theme="{DynamicResource SolidButton}" Classes="Primary" />
+                        <Button Content="{r:T VoidShort}" Command="{Binding VoidCommand}" Height="32" Foreground="{DynamicResource DangerText}" />
+                      </StackPanel>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+
+      <Border Grid.Column="2" Classes="panel">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="{Binding DayTitle}" Classes="h2" Margin="0,0,0,4" TextWrapping="Wrap" />
+          <TextBlock DockPanel.Dock="Top" Text="{Binding DayPlan}" Classes="muted" Margin="0,0,0,8" TextWrapping="Wrap"
+                     IsVisible="{Binding DayPlan, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+          <!-- Voqea qo'shish formasi (A11) -->
+          <Border DockPanel.Dock="Bottom" IsVisible="{Binding IsAdding}" Background="{DynamicResource SurfaceAltBrush}" CornerRadius="8" Padding="10" Margin="0,8,0,0">
+            <StackPanel Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <RadioButton Content="{r:T EventIn}" IsChecked="{Binding AddIsIn}" GroupName="addType" />
+                <RadioButton Content="{r:T EventOut}" IsChecked="{Binding !AddIsIn}" GroupName="addType" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <CalendarDatePicker SelectedDate="{Binding AddDate}" Width="140" />
+                <TextBox Text="{Binding AddTime}" Watermark="08:00" Width="70" />
+              </StackPanel>
+              <TextBox Text="{Binding AddNote}" Watermark="{r:T Note}" MaxLength="200" />
+              <TextBlock Text="{Binding AddError}" Foreground="{DynamicResource DangerText}" IsVisible="{Binding AddError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="{r:T Save}" Command="{Binding SaveAddCommand}" Theme="{DynamicResource SolidButton}" Classes="Primary" />
+                <Button Content="{r:T Cancel}" Command="{Binding CancelAddCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          <Button DockPanel.Dock="Bottom" Content="{r:T AddEvent}" Command="{Binding StartAddCommand}"
+                  IsVisible="{Binding HasSelection}" Margin="0,8,0,0" HorizontalAlignment="Left" />
+
+          <TextBlock DockPanel.Dock="Top" Text="{r:T NoDayEvents}" Classes="muted"
+                     IsVisible="{Binding HasNoDayEvents}" />
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding DayEvents}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:DayEventViewModel">
+                  <Border BorderBrush="{DynamicResource CellBorderBrush}" BorderThickness="0,0,0,1" Padding="0,6" Opacity="{Binding Opacity}">
+                    <DockPanel>
+                      <Button DockPanel.Dock="Right" Content="{r:T VoidEvent}" Classes="link" Foreground="{DynamicResource DangerText}" FontSize="12"
+                              Command="{Binding VoidCommand}" IsVisible="{Binding CanVoid}" VerticalAlignment="Center" />
+                      <StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                          <TextBlock Text="{Binding Time}" FontWeight="SemiBold" MinWidth="44" TextDecorations="{Binding Decorations}" />
+                          <TextBlock Text="{Binding TypeText}" FontWeight="SemiBold" MinWidth="44" Foreground="{Binding TypeBrush}" TextDecorations="{Binding Decorations}" />
+                          <TextBlock Text="{Binding Source}" Foreground="{DynamicResource MutedBrush}" />
+                          <Border Classes="debt" IsVisible="{Binding HasClockSkew}" ToolTip.Tip="{r:T ClockSkewTip}">
+                            <TextBlock Text="{r:T ClockSkew}" />
+                          </Border>
+                        </StackPanel>
+                        <TextBlock Text="{Binding Note}" FontSize="12" Foreground="{DynamicResource MutedBrush}" IsVisible="{Binding HasNote}" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+    </Grid>
+
+    <!-- Bo'sh holat -->
+    <Border DockPanel.Dock="Top" Classes="warn" Margin="0,0,0,12" IsVisible="{Binding !HasEvents}">
+      <TextBlock Text="{r:T NoAttendance}" TextWrapping="Wrap" />
+    </Border>
+
+    <!-- Jadval: xodim × 1..31; sarlavha yopishtirilgan, gorizontal aylantirish birga -->
+    <Border Classes="card" ClipToBounds="True">
+      <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="{DynamicResource SurfaceAltBrush}">
+            <Border Width="170" Height="40" BorderBrush="{DynamicResource TableBorderBrush}" BorderThickness="0,0,1,1" Padding="12,0">
+              <TextBlock Text="{r:T ColEmployee}" Classes="hdr" VerticalAlignment="Center" />
+            </Border>
+            <ItemsControl ItemsSource="{Binding DayHeaders}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:AttendanceDayHeader">
+                  <Border Width="30" Height="40" Background="{Binding Background}" BorderBrush="{DynamicResource TableBorderBrush}" BorderThickness="0,0,0,1">
+                    <StackPanel VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Number}" Classes="hdr" Foreground="{Binding Foreground}" HorizontalAlignment="Center" />
+                      <TextBlock Text="{Binding WeekDay}" FontSize="10" Foreground="{Binding Foreground}" HorizontalAlignment="Center" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Border Width="56" Height="40" BorderBrush="{DynamicResource TableBorderBrush}" BorderThickness="1,0,0,1">
+              <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0">
+                <TextBlock Text="{r:T ColAttendedDays}" Classes="hdr" HorizontalAlignment="Right" />
+                <TextBlock Text="{r:T ColAttendedDaysSub}" FontSize="10" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right" />
+              </StackPanel>
+            </Border>
+            <Border Width="62" Height="40" BorderBrush="{DynamicResource TableBorderBrush}" BorderThickness="0,0,0,1">
+              <TextBlock Text="{r:T ColTotalHours}" Classes="hdr" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+            </Border>
+            <Border Width="96" Height="40" BorderBrush="{DynamicResource TableBorderBrush}" BorderThickness="0,0,0,1">
+              <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0">
+                <TextBlock Text="{r:T ColDayEquivalent}" Classes="hdr" HorizontalAlignment="Right" />
+                <TextBlock Text="{Binding EquivalentHeader}" FontSize="10" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Rows}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:AttendanceRowViewModel">
+                  <StackPanel Orientation="Horizontal">
+                    <Border Width="170" Height="32" BorderBrush="{DynamicResource TableBorderBrush}" BorderThickness="0,0,1,1" Padding="12,0" Background="{Binding NameBackground}"
+                            ToolTip.Tip="{Binding NameTip}">
+                      <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Border>
+                    <ItemsControl ItemsSource="{Binding Cells}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AttendanceCellViewModel">
+                          <Border Classes="cell" Background="{Binding Background}" BorderBrush="{Binding BorderBrush}"
+                                  ToolTip.Tip="{Binding Tip}" Tapped="OnCellTapped" ContextRequested="OnCellContextRequested">
+                            <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" FontWeight="{Binding Weight}" />
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Border Classes="sum" Width="56" BorderThickness="1,0,0,1" BorderBrush="{DynamicResource TableBorderBrush}"><TextBlock Text="{Binding DaysText}" /></Border>
+                    <Border Classes="sum" Width="62" IsVisible="{Binding IsNotSchedule}"><TextBlock Text="{Binding HoursText}" /></Border>
+                    <Border Classes="sum" Width="96" IsVisible="{Binding IsNotSchedule}"><TextBlock Text="{Binding EquivalentText}" FontWeight="SemiBold" /></Border>
+                    <!-- H12: Schedule — ishlangan / reja · % (Σ soat + Kun ekv. o'rnida) -->
+                    <Border Classes="sum" Width="158" IsVisible="{Binding IsSchedule}"><TextBlock Text="{Binding PlanText}" FontWeight="SemiBold" /></Border>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </ScrollViewer>
+    </Border>
+  </DockPanel>
+</UserControl>

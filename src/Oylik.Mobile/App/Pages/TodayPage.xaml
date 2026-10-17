@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Oylik.Mobile.ViewModels"
+             xmlns:s="clr-namespace:Oylik.Mobile.Logic;assembly=Oylik.Mobile.Logic"
+             x:Class="Oylik.Mobile.Pages.TodayPage"
+             x:DataType="vm:TodayViewModel"
+             Title="{x:Static s:Strings.TabToday}">
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <VerticalStackLayout Grid.Row="0" BackgroundColor="{StaticResource Surface}" Padding="16,20,16,14" Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Text="{x:Static s:Strings.TabToday}" Style="{StaticResource H1}" VerticalOptions="Center" />
+                <Border Grid.Column="1" Stroke="{StaticResource InputLine}" StrokeThickness="1" StrokeShape="RoundRectangle 10"
+                        HeightRequest="48" Padding="10,0" VerticalOptions="Center">
+                    <Picker ItemsSource="{Binding DateLabels}" SelectedIndex="{Binding SelectedDateIndex}"
+                            Title="{x:Static s:Strings.Date}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Ink}"
+                            MinimumWidthRequest="120" VerticalOptions="Center" />
+                </Border>
+            </Grid>
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                <Border BackgroundColor="{StaticResource GreenBg}" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="12,10">
+                    <VerticalStackLayout>
+                        <Label Text="{x:Static s:Strings.CountInside}" FontSize="13" TextColor="{StaticResource GreenText}" />
+                        <Label Text="{Binding InsideCount}" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource GreenText}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Column="1" BackgroundColor="{StaticResource GrayBg}" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="12,10">
+                    <VerticalStackLayout>
+                        <Label Text="{x:Static s:Strings.CountLeft}" FontSize="13" TextColor="{StaticResource Ink2}" />
+                        <Label Text="{Binding LeftCount}" FontSize="26" FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Column="2" BackgroundColor="{StaticResource RedBg}" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="12,10">
+                    <VerticalStackLayout>
+                        <Label Text="{x:Static s:Strings.CountAbsent}" FontSize="13" TextColor="{StaticResource RedText}" />
+                        <Label Text="{Binding AbsentCount}" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource RedText}" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </VerticalStackLayout>
+
+        <!-- Jadval sarlavhasi -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,64,64,72" BackgroundColor="#F7F8FA" Padding="16,8">
+            <Label Text="{x:Static s:Strings.ColName}" Style="{StaticResource MutedText}" FontAttributes="Bold" FontSize="12" />
+            <Label Grid.Column="1" Text="{x:Static s:Strings.ColIn}" Style="{StaticResource MutedText}" FontAttributes="Bold" FontSize="12" HorizontalTextAlignment="End" />
+            <Label Grid.Column="2" Text="{x:Static s:Strings.ColOut}" Style="{StaticResource MutedText}" FontAttributes="Bold" FontSize="12" HorizontalTextAlignment="End" />
+            <Label Grid.Column="3" Text="{x:Static s:Strings.ColHours}" Style="{StaticResource MutedText}" FontAttributes="Bold" FontSize="12" HorizontalTextAlignment="End" />
+            <BoxView Grid.ColumnSpan="4" HeightRequest="1" Color="#D5D9DF" VerticalOptions="End" Margin="-16,0,-16,-8" />
+        </Grid>
+
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Rows}" BackgroundColor="{StaticResource Surface}" SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:TodayRowView">
+                    <Grid ColumnDefinitions="*,64,64,72" Padding="16,0" HeightRequest="48">
+                        <Label Text="{Binding Name}" FontAttributes="Bold" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="{Binding InText}" TextColor="{Binding InColor}" HorizontalTextAlignment="End" VerticalOptions="Center" />
+                        <Label Grid.Column="2" Text="{Binding OutText}" TextColor="{Binding OutColor}" HorizontalTextAlignment="End" VerticalOptions="Center" />
+                        <Label Grid.Column="3" Text="{Binding HoursText}" TextColor="{Binding HoursColor}" HorizontalTextAlignment="End" VerticalOptions="Center">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding HoursBold}" Value="True">
+                                    <Setter Property="FontAttributes" Value="Bold" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                        <BoxView Grid.ColumnSpan="4" HeightRequest="1" Color="{StaticResource LineSoft}" VerticalOptions="End" Margin="-16,0" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.Footer>
+                <Label Text="{Binding LiveNote, Source={RelativeSource AncestorType={x:Type vm:TodayViewModel}}, x:DataType=vm:TodayViewModel}"
+                       Style="{StaticResource MutedText}" Padding="16,12" />
+            </CollectionView.Footer>
+        </CollectionView>
+    </Grid>
+</ContentPage>

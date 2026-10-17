@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Oylik.Mobile.ViewModels"
+             xmlns:s="clr-namespace:Oylik.Mobile.Logic;assembly=Oylik.Mobile.Logic"
+             x:Class="Oylik.Mobile.Pages.PairPage"
+             x:DataType="vm:PairViewModel"
+             NavigationPage.HasNavigationBar="False"
+             Title="{x:Static s:Strings.PairTitle}">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,28,20,24" Spacing="18">
+            <HorizontalStackLayout Spacing="10">
+                <Border WidthRequest="36" HeightRequest="36" StrokeThickness="0" StrokeShape="RoundRectangle 10" BackgroundColor="{StaticResource Primary}">
+                    <Label Text="O" TextColor="White" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label Text="{x:Static s:Strings.AppTitle}" FontSize="17" FontAttributes="Bold" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <Border IsVisible="{Binding HasNotice}" BackgroundColor="{StaticResource WarnBg}" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="14,10">
+                <Label Text="{Binding Notice}" TextColor="{StaticResource WarnText}" FontAttributes="Bold" />
+            </Border>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{x:Static s:Strings.PairTitle}" FontSize="26" FontAttributes="Bold" />
+                <Label Text="{x:Static s:Strings.PairHint}" FontSize="15" TextColor="{StaticResource Ink2}" LineHeight="1.3" />
+            </VerticalStackLayout>
+
+            <Button Text="{x:Static s:Strings.PairScan}" ImageSource="ic_scan.png" ContentLayout="Left,10"
+                    Clicked="OnScanClicked" Style="{StaticResource PrimaryButton}" IsEnabled="{Binding IsBusy, Converter={StaticResource Not}}" />
+
+            <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12">
+                <BoxView HeightRequest="1" Color="#D5D9DF" VerticalOptions="Center" />
+                <Label Grid.Column="1" Text="{x:Static s:Strings.PairOrManual}" Style="{StaticResource MutedText}" />
+                <BoxView Grid.Column="2" HeightRequest="1" Color="#D5D9DF" VerticalOptions="Center" />
+            </Grid>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{x:Static s:Strings.PairServer}" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBox}">
+                    <Entry Text="{Binding Server}" Placeholder="http://192.168.1.10:5000" Keyboard="Url" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" VerticalOptions="Center" />
+                </Border>
+                <Label x:Name="DemoNote" Text="{x:Static s:Strings.PairDemoNote}" Style="{StaticResource MutedText}" FontSize="12" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{x:Static s:Strings.PairLocalServer}" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBox}">
+                    <Entry Text="{Binding LocalServer}" Placeholder="http://192.168.1.10:5000" Keyboard="Url" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" VerticalOptions="Center" />
+                </Border>
+                <Label Text="{x:Static s:Strings.PairLocalHint}" Style="{StaticResource MutedText}" FontSize="12" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{x:Static s:Strings.PairCode}" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBox}">
+                    <Entry Text="{Binding Code}" Placeholder="{x:Static s:Strings.PairCodeHint}" Keyboard="Numeric" MaxLength="6"
+                           CharacterSpacing="6" FontAttributes="Bold" VerticalOptions="Center" />
+                </Border>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{x:Static s:Strings.PairDeviceName}" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBox}">
+                    <Entry Text="{Binding DeviceName}" VerticalOptions="Center" />
+                </Border>
+            </VerticalStackLayout>
+
+            <Border IsVisible="{Binding HasError}" BackgroundColor="{StaticResource RedBg}" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="14,10">
+                <Label Text="{Binding Error}" TextColor="{StaticResource RedText}" />
+            </Border>
+
+            <Grid>
+                <Button Text="{x:Static s:Strings.PairButton}" Command="{Binding PairCommand}" Style="{StaticResource OutlineButton}" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource Primary}" HorizontalOptions="End" Margin="0,0,16,0" />
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,76 @@
+<v:DialogWindow xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:vm="using:Oylik.Desktop.ViewModels"
+                xmlns:v="using:Oylik.Desktop.Views"
+                xmlns:r="using:Oylik.Desktop.Resources"
+                x:Class="Oylik.Desktop.Views.AssignScheduleWindow"
+                x:DataType="vm:AssignScheduleViewModel"
+                Title="{Binding Title}"
+                Width="560" SizeToContent="Height" CanResize="False"
+                WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+  <!-- H2, H13.5: jadval biriktirish tarixi bilan; H13.7: xodim uchun ortiqcha ish siyosati -->
+  <StackPanel Margin="24" Spacing="14">
+    <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold" TextWrapping="Wrap" />
+    <TextBlock Text="{r:T AssignHint}" Classes="muted" TextWrapping="Wrap" />
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="{r:T FieldSchedule}" Classes="muted" FontWeight="SemiBold" />
+      <ComboBox ItemsSource="{Binding Choices}" SelectedItem="{Binding SelectedChoice}" HorizontalAlignment="Stretch">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:ScheduleChoice">
+            <StackPanel>
+              <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding Summary}" Classes="muted" />
+            </StackPanel>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </StackPanel>
+
+    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{r:T FieldEffectiveFrom}" Classes="muted" FontWeight="SemiBold" />
+        <CalendarDatePicker SelectedDate="{Binding EffectiveFrom}" HorizontalAlignment="Stretch" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Spacing="4" IsVisible="{Binding IsCycle}">
+        <TextBlock Text="{r:T FieldCycleAnchor}" Classes="muted" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+        <CalendarDatePicker SelectedDate="{Binding CycleAnchor}" HorizontalAlignment="Stretch" />
+      </StackPanel>
+    </Grid>
+    <Button Content="{r:T Assign}" Command="{Binding AssignCommand}" HorizontalAlignment="Left" />
+
+    <StackPanel Spacing="4" IsVisible="{Binding HasHistory}">
+      <TextBlock Text="{r:T HistoryTitle}" Classes="muted" FontWeight="SemiBold" />
+      <ItemsControl ItemsSource="{Binding History}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:AssignmentItem">
+            <Border BorderBrush="{DynamicResource BorderBrushLight}" BorderThickness="0,0,0,1" Padding="0,6">
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Classes="link" Content="✕" Foreground="{DynamicResource NegativeBrush}"
+                        Command="{Binding RemoveCommand}" ToolTip.Tip="{r:T Delete}" VerticalAlignment="Center" />
+                <TextBlock DockPanel.Dock="Left" Text="{Binding From}" Width="130" Classes="muted" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Text}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <Grid ColumnDefinitions="*,160" ColumnSpacing="12">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{r:T EmployeeOvertimeLabel}" Classes="muted" FontWeight="SemiBold" />
+        <ComboBox ItemsSource="{Binding OvertimeOptions}" SelectedIndex="{Binding OvertimeIndex}" HorizontalAlignment="Stretch" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Spacing="4" IsVisible="{Binding HasOvertimeValue}">
+        <TextBlock Text="{r:T OvertimeValueLabel}" Classes="muted" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+        <NumericUpDown Value="{Binding OvertimeValue}" Minimum="0" Maximum="10000000" Increment="0.5" FormatString="0.##" />
+      </StackPanel>
+    </Grid>
+
+    <TextBlock Text="{Binding Error}" Foreground="{DynamicResource NegativeBrush}" TextWrapping="Wrap"
+               IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+    <Button Content="{r:T Close}" Command="{Binding DoneCommand}" IsDefault="True" HorizontalAlignment="Right"
+            Classes="Primary" Theme="{DynamicResource SolidButton}" MinWidth="96" />
+  </StackPanel>
+</v:DialogWindow>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:pages="clr-namespace:Oylik.Mobile.Pages"
+       xmlns:s="clr-namespace:Oylik.Mobile.Logic;assembly=Oylik.Mobile.Logic"
+       x:Class="Oylik.Mobile.AppShell"
+       Shell.NavBarIsVisible="False"
+       Shell.TabBarBackgroundColor="#FFFFFF"
+       Shell.TabBarForegroundColor="{StaticResource Primary}"
+       Shell.TabBarTitleColor="{StaticResource Primary}"
+       Shell.TabBarUnselectedColor="{StaticResource Muted}"
+       Shell.BackgroundColor="#FFFFFF">
+    <TabBar>
+        <ShellContent Title="{x:Static s:Strings.TabEmployees}" Icon="tab_employees.png" Route="employees"
+                      ContentTemplate="{DataTemplate pages:EmployeesPage}" />
+        <ShellContent Title="{x:Static s:Strings.TabToday}" Icon="tab_today.png" Route="today"
+                      ContentTemplate="{DataTemplate pages:TodayPage}" />
+        <ShellContent Title="{x:Static s:Strings.TabSync}" Icon="tab_sync.png" Route="sync"
+                      ContentTemplate="{DataTemplate pages:SyncPage}" />
+        <ShellContent Title="{x:Static s:Strings.TabSettings}" Icon="tab_settings.png" Route="settings"
+                      ContentTemplate="{DataTemplate pages:SettingsPage}" />
+    </TabBar>
+</Shell>

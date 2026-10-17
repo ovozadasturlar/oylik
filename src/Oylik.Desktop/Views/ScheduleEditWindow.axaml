@@ -1,0 +1,72 @@
+<v:DialogWindow xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:vm="using:Oylik.Desktop.ViewModels"
+                xmlns:v="using:Oylik.Desktop.Views"
+                xmlns:r="using:Oylik.Desktop.Resources"
+                x:Class="Oylik.Desktop.Views.ScheduleEditWindow"
+                x:DataType="vm:ScheduleEditViewModel"
+                Title="{Binding Title}"
+                Width="520" SizeToContent="Height" CanResize="False"
+                WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+  <!-- 5.10 / H1: ish jadvali shabloni -->
+  <StackPanel Margin="24" Spacing="14">
+    <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold" />
+    <StackPanel Spacing="4">
+      <TextBlock Text="{r:T FieldScheduleName}" Classes="muted" FontWeight="SemiBold" />
+      <TextBox x:Name="NameBox" Text="{Binding Name}" MaxLength="100" />
+    </StackPanel>
+
+    <Border Classes="segmented">
+      <StackPanel Orientation="Horizontal" Spacing="4">
+        <RadioButton GroupName="kind" Classes="segment" IsChecked="{Binding IsWeekly}" Content="{r:T KindWeekly}" />
+        <RadioButton GroupName="kind" Classes="segment" IsChecked="{Binding IsCycle}" Content="{r:T KindCycle}" />
+      </StackPanel>
+    </Border>
+
+    <ItemsControl ItemsSource="{Binding Days}" IsVisible="{Binding IsWeekly}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Orientation="Horizontal" Spacing="6" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:WeekDayToggle">
+          <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsChecked}" MinWidth="48" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <Grid ColumnDefinitions="*,*" ColumnSpacing="12" IsVisible="{Binding IsCycle}">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{r:T FieldWorkDays}" Classes="muted" FontWeight="SemiBold" />
+        <NumericUpDown Value="{Binding WorkDays}" Minimum="1" Maximum="30" Increment="1" FormatString="0" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Spacing="4">
+        <TextBlock Text="{r:T FieldOffDays}" Classes="muted" FontWeight="SemiBold" />
+        <NumericUpDown Value="{Binding OffDays}" Minimum="0" Maximum="30" Increment="1" FormatString="0" />
+      </StackPanel>
+    </Grid>
+
+    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{r:T FieldStart}" Classes="muted" FontWeight="SemiBold" />
+        <TextBox Text="{Binding StartText}" Watermark="08:00" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Spacing="4">
+        <TextBlock Text="{r:T FieldDuration}" Classes="muted" FontWeight="SemiBold" />
+        <TextBox Text="{Binding DurationText}" Watermark="9:00" />
+      </StackPanel>
+      <StackPanel Grid.Column="2" Spacing="4">
+        <TextBlock Text="{r:T FieldBreak}" Classes="muted" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+        <NumericUpDown Value="{Binding BreakMinutes}" Minimum="0" Maximum="600" Increment="15" FormatString="0" />
+      </StackPanel>
+    </Grid>
+
+    <TextBlock Text="{Binding Error}" Foreground="{DynamicResource NegativeBrush}" TextWrapping="Wrap"
+               IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="{r:T Cancel}" Command="{Binding CancelCommand}" />
+      <Button Content="{r:T Save}" Command="{Binding SaveCommand}" IsDefault="True" Classes="Primary" Theme="{DynamicResource SolidButton}" />
+    </StackPanel>
+  </StackPanel>
+</v:DialogWindow>

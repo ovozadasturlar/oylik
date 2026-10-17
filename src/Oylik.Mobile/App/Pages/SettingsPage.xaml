@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Oylik.Mobile.ViewModels"
+             xmlns:s="clr-namespace:Oylik.Mobile.Logic;assembly=Oylik.Mobile.Logic"
+             x:Class="Oylik.Mobile.Pages.SettingsPage"
+             x:DataType="vm:SettingsViewModel"
+             Title="{x:Static s:Strings.TabSettings}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16,20" Spacing="14">
+            <Label Text="{x:Static s:Strings.SettingsTitle}" Style="{StaticResource H1}" />
+
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="14" ColumnSpacing="12">
+                    <Label Text="{x:Static s:Strings.SettingsDevice}" Style="{StaticResource MutedText}" FontSize="15" />
+                    <Label Grid.Column="1" Text="{Binding DeviceName}" FontAttributes="Bold" HorizontalTextAlignment="End" />
+
+                    <Label Grid.Row="1" Text="{x:Static s:Strings.SettingsServer}" Style="{StaticResource MutedText}" FontSize="15" />
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding ServerText}" HorizontalTextAlignment="End" LineBreakMode="CharacterWrap" />
+
+                    <Label Grid.Row="2" Text="{x:Static s:Strings.SettingsVersion}" Style="{StaticResource MutedText}" FontSize="15" />
+                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding Version}" HorizontalTextAlignment="End" />
+                </Grid>
+            </Border>
+
+            <Button Text="{x:Static s:Strings.SettingsEditAddresses}" Command="{Binding EditAddressesCommand}" Style="{StaticResource OutlineButton}"
+                    IsVisible="{Binding IsEditingAddresses, Converter={StaticResource Not}}" />
+
+            <Border IsVisible="{Binding HasAddressNotice}" BackgroundColor="#E3F4E8" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="14,10">
+                <Label Text="{Binding AddressNotice}" TextColor="#145C2B" />
+            </Border>
+
+            <Border Style="{StaticResource Card}" IsVisible="{Binding IsEditingAddresses}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="{x:Static s:Strings.AddrServer}" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBox}">
+                        <Entry Text="{Binding EditServer}" Placeholder="https://oylik.example.uz" Keyboard="Url" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="{x:Static s:Strings.PairLocalServer}" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBox}">
+                        <Entry Text="{Binding EditLocalServer}" Placeholder="http://192.168.1.10:5000" Keyboard="Url" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="{x:Static s:Strings.AddrHint}" Style="{StaticResource MutedText}" FontSize="12" />
+                    <Border IsVisible="{Binding HasAddressError}" BackgroundColor="{StaticResource RedBg}" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="14,10">
+                        <Label Text="{Binding AddressError}" TextColor="{StaticResource RedText}" />
+                    </Border>
+                    <Grid>
+                        <Button Text="{x:Static s:Strings.AddrSave}" Command="{Binding SaveAddressesCommand}" Style="{StaticResource PrimaryButton}" />
+                        <ActivityIndicator IsRunning="{Binding IsCheckingAddresses}" IsVisible="{Binding IsCheckingAddresses}" Color="White" HorizontalOptions="End" Margin="0,0,16,0" />
+                    </Grid>
+                    <Button Text="{x:Static s:Strings.AddrCancel}" Command="{Binding CancelAddressesCommand}" Style="{StaticResource OutlineButton}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Padding="16,6">
+                <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="56">
+                    <Label Text="{x:Static s:Strings.SettingsKeepScreenOn}" FontSize="17" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" IsToggled="{Binding KeepScreenOn}" OnColor="#8CB8FF" ThumbColor="{StaticResource Primary}" VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <Button Text="{x:Static s:Strings.Disconnect}" Command="{Binding DisconnectCommand}" Style="{StaticResource OutlineButton}"
+                    TextColor="{StaticResource RedText}" BorderColor="{StaticResource RedText}" Margin="0,12,0,0" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

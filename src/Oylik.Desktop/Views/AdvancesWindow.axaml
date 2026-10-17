@@ -1,0 +1,104 @@
+<v:DialogWindow xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:vm="using:Oylik.Desktop.ViewModels"
+                xmlns:v="using:Oylik.Desktop.Views"
+                xmlns:r="using:Oylik.Desktop.Resources"
+                x:Class="Oylik.Desktop.Views.AdvancesWindow"
+                x:DataType="vm:AdvancesViewModel"
+                Title="{Binding Title}"
+                Width="720" Height="560" MinWidth="600" MinHeight="420"
+                WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Margin="24,20,24,12" Spacing="4">
+      <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold" TextWrapping="Wrap" />
+      <TextBlock Text="{Binding Summary}" Classes="muted" FontSize="13" />
+    </StackPanel>
+
+    <DockPanel DockPanel.Dock="Bottom" Margin="24,12,24,20">
+      <Button DockPanel.Dock="Right" Content="{r:T Close}" Command="{Binding DoneCommand}" MinWidth="96" />
+      <TextBlock Text="{Binding TotalText}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" />
+    </DockPanel>
+
+    <!-- Yangi avans -->
+    <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushLight}" BorderThickness="0,1"
+            Padding="24,14" IsVisible="{Binding IsOpen}">
+      <StackPanel Spacing="6">
+        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="10">
+          <StackPanel Grid.Column="0" Spacing="4">
+            <TextBlock Text="{r:T AdvDate}" Classes="muted" FontWeight="SemiBold" />
+            <CalendarDatePicker SelectedDate="{Binding NewDate}" Width="140" Height="38" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Spacing="4">
+            <TextBlock Text="{r:T AdvAmount}" Classes="muted" FontWeight="SemiBold" />
+            <TextBox x:Name="AmountBox" Text="{Binding NewAmountText}" Width="130" Height="38" TextAlignment="Right">
+              <TextBox.KeyBindings>
+                <KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+              </TextBox.KeyBindings>
+            </TextBox>
+          </StackPanel>
+          <TextBlock Grid.Column="2" Text="{Binding AmountPreview}" Foreground="{DynamicResource ManualBrush}"
+                     VerticalAlignment="Bottom" Margin="0,0,0,10" MinWidth="90" />
+          <StackPanel Grid.Column="3" Spacing="4">
+            <TextBlock Text="{r:T AdvNote}" Classes="muted" FontWeight="SemiBold" />
+            <TextBox Text="{Binding NewNote}" Height="38" Watermark="{r:T Optional}">
+              <TextBox.KeyBindings>
+                <KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+              </TextBox.KeyBindings>
+            </TextBox>
+          </StackPanel>
+          <Button Grid.Column="4" Content="{r:T AdvAdd}" Command="{Binding AddCommand}" VerticalAlignment="Bottom"
+                  Height="38" Classes="Primary" Theme="{DynamicResource SolidButton}" />
+        </Grid>
+        <TextBlock Text="{Binding Error}" Foreground="{DynamicResource NegativeBrush}"
+                   IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        <TextBlock Text="{r:T ShortInputHint}" Classes="muted" />
+      </StackPanel>
+    </Border>
+
+    <DataGrid ItemsSource="{Binding Items}" IsReadOnly="True" AutoGenerateColumns="False" Margin="24,0"
+              GridLinesVisibility="All" HeadersVisibility="Column" CanUserSortColumns="False" RowHeight="40">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="{r:T AdvDate}" Binding="{Binding DateText}" Width="110" x:DataType="vm:AdvanceItemViewModel" />
+        <DataGridTemplateColumn Header="{r:T AdvAmount}" Width="130">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:AdvanceItemViewModel">
+              <TextBlock Text="{Binding AmountText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Header="{r:T AdvKind}" Width="90">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:AdvanceItemViewModel">
+              <Panel Margin="12,0">
+                <Border Classes="debt" HorizontalAlignment="Left" IsVisible="{Binding IsDebt}"><TextBlock Text="{Binding KindText}" /></Border>
+                <Border Classes="badge open" HorizontalAlignment="Left" Padding="6,1" CornerRadius="4" IsVisible="{Binding IsCash}"><TextBlock Text="{Binding KindText}" FontSize="11" /></Border>
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Header="{r:T AdvNote}" Width="*">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:AdvanceItemViewModel">
+              <TextBlock Text="{Binding Note}" VerticalAlignment="Center" Margin="12,0" ToolTip.Tip="{Binding Tooltip}" TextTrimming="CharacterEllipsis" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Width="56">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:AdvanceItemViewModel">
+              <Panel>
+                <Button Content="✕" Classes="link" Foreground="{DynamicResource NegativeBrush}" HorizontalAlignment="Center"
+                        ToolTip.Tip="{r:T Delete}" IsVisible="{Binding IsCash}"
+                        IsEnabled="{Binding $parent[Window].((vm:AdvancesViewModel)DataContext).IsOpen}"
+                        Command="{Binding $parent[Window].((vm:AdvancesViewModel)DataContext).RemoveCommand}"
+                        CommandParameter="{Binding}" />
+                <PathIcon Width="14" Height="14" Foreground="{DynamicResource MutedBrush}" IsVisible="{Binding IsDebt}" ToolTip.Tip="{Binding Tooltip}"
+                          Data="M5,11 H19 V21 H5 Z M8,11 V8 A4,4 0 0 1 16,8 V11 H14 V8 A2,2 0 0 0 10,8 V11 Z" />
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </DataGrid>
+  </DockPanel>
+</v:DialogWindow>

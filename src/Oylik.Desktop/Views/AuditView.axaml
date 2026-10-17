@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Oylik.Desktop.ViewModels"
+             xmlns:r="using:Oylik.Desktop.Resources"
+             x:Class="Oylik.Desktop.Views.AuditView"
+             x:DataType="vm:AuditViewModel">
+  <DockPanel Margin="24,20,24,16">
+    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,16" ItemSpacing="12" LineSpacing="10">
+      <TextBlock Text="{r:T NavAudit}" Classes="h1" VerticalAlignment="Center" Margin="0,0,8,0" />
+      <ComboBox ItemsSource="{Binding EmployeeOptions}" SelectedItem="{Binding EmployeeFilter}" MinWidth="220" />
+      <ComboBox ItemsSource="{Binding PeriodOptions}" SelectedItem="{Binding PeriodFilter}" MinWidth="170" />
+    </WrapPanel>
+    <Border Classes="card" ClipToBounds="True">
+      <DataGrid ItemsSource="{Binding Items}" IsReadOnly="True" AutoGenerateColumns="False"
+                GridLinesVisibility="All" HeadersVisibility="Column" RowHeight="34">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="{r:T AuditAt}" Binding="{Binding At}" Width="160" x:DataType="vm:AuditItem" />
+          <DataGridTextColumn Header="{r:T AuditWhat}" Binding="{Binding What}" Width="2*" x:DataType="vm:AuditItem" />
+          <DataGridTextColumn Header="{r:T AuditChange}" Binding="{Binding Change}" Width="2*" x:DataType="vm:AuditItem" />
+          <DataGridTextColumn Header="{r:T AuditComment}" Binding="{Binding Comment}" Width="2*" x:DataType="vm:AuditItem" />
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
+  </DockPanel>
+</UserControl>

@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Oylik.Desktop.ViewModels"
+             xmlns:r="using:Oylik.Desktop.Resources"
+             xmlns:v="using:Oylik.Desktop.Views"
+             x:Class="Oylik.Desktop.Views.EmployeesView"
+             x:DataType="vm:EmployeesViewModel">
+  <!-- 5.4: Excel kabi — tahrir jadvalning o'zida (Oylik jadvali bilan bir xil xulq) -->
+  <DockPanel Margin="24,20,24,16">
+    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,16" ItemSpacing="12" LineSpacing="10">
+      <TextBlock Text="{r:T NavEmployees}" Classes="h1" VerticalAlignment="Center" Margin="0,0,8,0" />
+      <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+        <ToggleButton Content="{Binding CountActive}" IsChecked="{Binding IsFilterActive, Mode=OneWay}"
+                      Command="{Binding SetFilterCommand}" CommandParameter="{x:Static vm:EmployeeFilter.Active}" />
+        <ToggleButton Content="{Binding CountInactive}" IsChecked="{Binding IsFilterInactive, Mode=OneWay}"
+                      Command="{Binding SetFilterCommand}" CommandParameter="{x:Static vm:EmployeeFilter.Inactive}" />
+        <ToggleButton Content="{r:T FilterAll}" IsChecked="{Binding IsFilterAll, Mode=OneWay}"
+                      Command="{Binding SetFilterCommand}" CommandParameter="{x:Static vm:EmployeeFilter.All}" />
+      </StackPanel>
+      <v:BranchFilterBar DataContext="{Binding Main}" />
+      <TextBox Text="{Binding SearchText}" Watermark="{r:T SearchNameOrNote}" Width="240" Height="40" VerticalContentAlignment="Center" />
+    </WrapPanel>
+
+    <DockPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+      <Button Content="{r:T AddEmployee}" Command="{Binding NewEmployeeCommand}" />
+      <TextBlock Text="{r:T EmployeesKeyboardHint}" Classes="muted" VerticalAlignment="Center" Margin="16,0,0,0" TextTrimming="CharacterEllipsis" />
+    </DockPanel>
+
+    <Border Classes="card" ClipToBounds="True">
+      <DataGrid x:Name="Grid" Classes="payroll employees"
+                ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}"
+                AutoGenerateColumns="False" CanUserSortColumns="False" CanUserReorderColumns="False"
+                CanUserResizeColumns="True" SelectionMode="Single" GridLinesVisibility="All"
+                HeadersVisibility="Column" RowHeight="38">
+        <DataGrid.Columns>
+          <!-- H13.10: doimiy tabel raqami -->
+          <DataGridTextColumn Header="{r:T ColTabelNo}" Binding="{Binding TabelNo}" IsReadOnly="True" Width="84" CellStyleClasses="center" x:DataType="vm:EmployeeRowViewModel" />
+          <DataGridTextColumn Header="{r:T FieldName}" Binding="{Binding NameText, UpdateSourceTrigger=LostFocus}" Width="2*" CellStyleClasses="name" x:DataType="vm:EmployeeRowViewModel" />
+          <DataGridTemplateColumn Header="{r:T ColBranch}" Width="150">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:EmployeeRowViewModel">
+                <ComboBox Classes="cell" ItemsSource="{Binding BranchChoices}" SelectedItem="{Binding Branch}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:BranchOption">
+                      <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{r:T Note}" Binding="{Binding NoteText, UpdateSourceTrigger=LostFocus}" Width="120" x:DataType="vm:EmployeeRowViewModel" />
+          <DataGridTextColumn Header="{r:T FieldSalary}" Binding="{Binding SalaryText, UpdateSourceTrigger=LostFocus}" Width="130" CellStyleClasses="num" x:DataType="vm:EmployeeRowViewModel" />
+          <DataGridTextColumn Header="{r:T FieldDaily}" Binding="{Binding DailyText, UpdateSourceTrigger=LostFocus}" Width="130" CellStyleClasses="num daily" x:DataType="vm:EmployeeRowViewModel" />
+          <!-- 4.3: hisob usuli va jadval (5.10) -->
+          <DataGridTemplateColumn Header="{r:T ColPayMode}" Width="140">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:EmployeeRowViewModel">
+                <ComboBox Classes="cell" ItemsSource="{Binding PayModeChoices}" SelectedIndex="{Binding PayModeIndex}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{r:T ColSchedule}" Width="190">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:EmployeeRowViewModel">
+                <Button Classes="link" Margin="12,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Command="{Binding OpenScheduleCommand}" ToolTip.Tip="{r:T ColSchedule}">
+                  <TextBlock Text="{Binding ScheduleText}" TextTrimming="CharacterEllipsis"
+                             Foreground="{DynamicResource ManualBrush}" Opacity="{Binding IsSchedule, Converter={x:Static v:Converters.ScheduleOpacity}}" />
+                </Button>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{r:T ColStatus}" Width="110">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:EmployeeRowViewModel">
+                <CheckBox IsChecked="{Binding IsActive}" Content="{r:T IsActive}" Margin="12,0,0,0" VerticalAlignment="Center" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <!-- Kam ishlatiladigan amallar: Kunlikni avtomatik qilish (qo'lda bo'lsa), o'chirish (tarixi bo'lmasa) -->
+          <DataGridTemplateColumn Width="90" IsReadOnly="True">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:EmployeeRowViewModel">
+                <StackPanel Orientation="Horizontal" Spacing="12" Margin="12,0" VerticalAlignment="Center">
+                  <Button Classes="link" Content="↺" FontSize="15" Foreground="{DynamicResource ManualBrush}"
+                          Command="{Binding ResetDailyCommand}" IsVisible="{Binding IsManualDaily}" ToolTip.Tip="{r:T ResetToAuto}" />
+                  <Button Classes="link" Content="✕" Foreground="{DynamicResource NegativeBrush}"
+                          Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" ToolTip.Tip="{r:T DeleteEmployeeTip}" />
+                </StackPanel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
+  </DockPanel>
+</UserControl>

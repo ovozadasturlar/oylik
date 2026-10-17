@@ -1,0 +1,195 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Oylik.Desktop.ViewModels"
+             xmlns:r="using:Oylik.Desktop.Resources"
+             xmlns:v="using:Oylik.Desktop.Views"
+             x:Class="Oylik.Desktop.Views.PayrollView"
+             x:DataType="vm:PayrollViewModel">
+
+  <UserControl.Resources>
+    <!-- 5.11: qator menyusi — hisob varaqasi -->
+    <ContextMenu x:Key="RowMenu" x:DataType="vm:PayrollViewModel">
+      <MenuItem Header="{r:T Payslip}" Command="{Binding ShowPayslipCommand}" CommandParameter="{Binding SelectedRow}" />
+    </ContextMenu>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <!-- H12: joriy oyda bugun kechikmoqda / kelmadi — ism katagi foni va izohi -->
+    <Style Selector="DataGrid.payroll DataGridCell.name" x:DataType="vm:PayrollRowViewModel">
+      <Setter Property="Background" Value="{Binding NameBackground}" />
+      <Setter Property="ToolTip.Tip" Value="{Binding NameTip}" />
+    </Style>
+  </UserControl.Styles>
+
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Ctrl+N" Command="{Binding NewEmployeeCommand}" />
+  </UserControl.KeyBindings>
+
+  <DockPanel Margin="24,20,24,16">
+
+    <!-- Yuqori panel -->
+    <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,16" ItemSpacing="12" LineSpacing="10">
+      <Border Classes="card" Padding="4" CornerRadius="8">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <Button Content="◀" Command="{Binding PrevMonthCommand}" Width="36" Height="36" Padding="0" ToolTip.Tip="{r:T PrevMonth}" />
+          <TextBlock Text="{Binding MonthLabel}" FontSize="18" FontWeight="Bold" MinWidth="150"
+                     TextAlignment="Center" VerticalAlignment="Center" />
+          <Button Content="▶" Command="{Binding NextMonthCommand}" Width="36" Height="36" Padding="0" ToolTip.Tip="{r:T NextMonth}" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="badge open" IsVisible="{Binding IsOpen}">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <Ellipse Width="7" Height="7" Fill="{DynamicResource SuccessBrush}" VerticalAlignment="Center" />
+          <TextBlock Text="{r:T Open}" FontSize="13" />
+        </StackPanel>
+      </Border>
+      <Border Classes="badge closed" IsVisible="{Binding IsClosed}">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <PathIcon Width="12" Height="12" Foreground="{DynamicResource SubtleTextBrush}" Data="M5,11 H19 V21 H5 Z M8,11 V8 A4,4 0 0 1 16,8 V11 H14 V8 A2,2 0 0 0 10,8 V11 Z" />
+          <TextBlock Text="{Binding ClosedAtText}" FontSize="13" />
+        </StackPanel>
+      </Border>
+
+      <v:BranchFilterBar DataContext="{Binding Main}" />
+
+      <TextBox x:Name="SearchBox" Text="{Binding SearchText}" Watermark="{r:T Search}"
+               Width="220" Height="40" VerticalContentAlignment="Center" IsVisible="{Binding HasPeriod}" />
+
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Content="{r:T NewPeriod}" Command="{Binding NewPeriodCommand}" Height="40" />
+        <Button Content="{r:T ImportExcel}" Command="{Binding ImportCommand}" Height="40" />
+        <Button Content="{r:T ExportExcel}" Command="{Binding ExportCommand}" Height="40" IsVisible="{Binding HasPeriod}" />
+        <!-- 5.11: barcha xodimlar (joriy tarmoq filtri) — bitta PDF + umumiy vedomost -->
+        <Button Content="{r:T Payslips}" Command="{Binding ShowPayslipsCommand}" Height="40" IsVisible="{Binding HasPeriod}" ToolTip.Tip="{r:T PayslipsTip}" />
+        <Button Content="{r:T CopyAll}" Command="{Binding CopyAllAttendanceCommand}" Height="40" IsVisible="{Binding HasAttendance}" />
+        <Button Content="{r:T ClosePeriod}" Command="{Binding ClosePeriodCommand}" Height="40"
+                Classes="Primary" Theme="{DynamicResource SolidButton}" IsVisible="{Binding IsOpen}" />
+        <Button Content="{r:T ReopenPeriod}" Command="{Binding ReopenCommand}" Height="40" IsVisible="{Binding IsClosed}" />
+      </StackPanel>
+    </WrapPanel>
+
+    <!-- Bo'sh holat -->
+    <Border DockPanel.Dock="Top" Classes="card" Padding="32" IsVisible="{Binding HasNoPeriod}">
+      <StackPanel Spacing="12" HorizontalAlignment="Center">
+        <TextBlock Text="{r:T NoPeriods}" FontSize="16" HorizontalAlignment="Center" />
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+          <Button Content="{r:T ImportExcel}" Command="{Binding ImportCommand}" Classes="Primary" Theme="{DynamicResource SolidButton}" />
+          <Button Content="{r:T NewPeriod}" Command="{Binding NewPeriodCommand}" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Xulosa qatori -->
+    <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,16" IsVisible="{Binding HasPeriod}">
+      <Grid ColumnDefinitions="*,*,*,*,*">
+        <StackPanel Grid.Column="0" Margin="16,10">
+          <TextBlock Text="{r:T Employees}" Classes="muted" />
+          <TextBlock Text="{Binding SumCount}" Classes="stat" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Margin="16,10">
+          <TextBlock Text="{r:T DaysSum}" Classes="muted" />
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="{Binding SumDays}" Classes="stat" />
+            <!-- H13.8: Schedule qatorlari bo'lsa — Soat Σ -->
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Bottom" Margin="0,0,0,3" IsVisible="{Binding HasScheduleRows}">
+              <TextBlock Text="{r:T HoursSum}" Classes="muted" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding SumHours}" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="2" Margin="16,10">
+          <TextBlock Text="{r:T TotalSum}" Classes="muted" />
+          <TextBlock Text="{Binding SumTotal}" Classes="stat" />
+        </StackPanel>
+        <StackPanel Grid.Column="3" Margin="16,10">
+          <TextBlock Text="{r:T AdvanceSum}" Classes="muted" />
+          <TextBlock Text="{Binding SumAdvance}" Classes="stat" />
+        </StackPanel>
+        <StackPanel Grid.Column="4" Margin="16,10">
+          <TextBlock Text="{r:T RemainderSum}" Classes="muted" />
+          <TextBlock Text="{Binding SumRemainder}" Classes="stat" Foreground="{Binding SumNegative, Converter={x:Static v:Converters.NegativeBrush}}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Pastki qism: yangi xodim + klaviatura -->
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="16" Margin="0,10,0,0" IsVisible="{Binding HasPeriod}">
+      <Button Content="{r:T NewEmployee}" Command="{Binding NewEmployeeCommand}" IsVisible="{Binding IsOpen}" />
+      <TextBlock Text="{r:T KeyboardHint}" Classes="muted" VerticalAlignment="Center" />
+    </StackPanel>
+
+    <!-- Jadval -->
+    <Border Classes="card" ClipToBounds="True" IsVisible="{Binding HasPeriod}">
+      <DockPanel>
+        <!-- JAMI qatori — pastda yopishtirilgan -->
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource FooterBg}" Height="40">
+          <!-- Ustun kengliklari DataGrid ustunlarining haqiqiy kengligiga bog'lanadi (PayrollView.axaml.cs: SyncFooter) -->
+          <Grid x:Name="Footer" ColumnDefinitions="50,130,*,120,80,0,140,150,140" TextElement.Foreground="{DynamicResource FooterText}" TextElement.FontWeight="SemiBold">
+            <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Text="{r:T Total}" LetterSpacing="1" Margin="16,0" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="4" Text="{Binding SumDays}" Classes="num" Margin="0,0,12,0" />
+            <TextBlock Grid.Column="6" Text="{Binding SumTotal}" Classes="num" Margin="0,0,12,0" />
+            <TextBlock Grid.Column="7" Text="{Binding SumAdvance}" Classes="num" Margin="0,0,12,0" />
+            <TextBlock Grid.Column="8" Text="{Binding SumRemainder}" Classes="num" Margin="0,0,12,0" />
+          </Grid>
+        </Border>
+
+        <DataGrid x:Name="Grid" Classes="payroll"
+                  ItemsSource="{Binding Rows}"
+                  ContextMenu="{StaticResource RowMenu}"
+                  SelectedItem="{Binding SelectedRow}"
+                  IsReadOnly="{Binding IsClosed}"
+                  AutoGenerateColumns="False"
+                  CanUserSortColumns="False"
+                  CanUserReorderColumns="False"
+                  CanUserResizeColumns="True"
+                  SelectionMode="Single"
+                  GridLinesVisibility="All"
+                  HeadersVisibility="Column"
+                  RowHeight="36"
+                  HorizontalGridLinesBrush="{DynamicResource GridLineBrush}"
+                  VerticalGridLinesBrush="{DynamicResource GridLineVBrush}">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="{x:Static r:Strings.ColNo}" Binding="{Binding No}" IsReadOnly="True" Width="50" CellStyleClasses="center" />
+            <DataGridTextColumn Header="{x:Static r:Strings.ColSalary}" Binding="{Binding SalaryText, UpdateSourceTrigger=LostFocus}" Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static r:Strings.ColName}" Binding="{Binding NameText, UpdateSourceTrigger=LostFocus}" Width="*" CellStyleClasses="name" />
+            <DataGridTextColumn Header="{x:Static r:Strings.ColDaily}" Binding="{Binding DailyText, UpdateSourceTrigger=LostFocus}" Width="120" CellStyleClasses="num daily schedtip" />
+            <DataGridTextColumn Header="{x:Static r:Strings.ColDays}" Binding="{Binding DaysText, UpdateSourceTrigger=LostFocus}" Width="80" CellStyleClasses="num schedtip" />
+            <!-- A9: Kun yonida davomat maslahati; bosilsa [Ko'chirish]. Davomat bo'lmasa yashirin. -->
+            <DataGridTemplateColumn Header="{r:T ColAttendance}" Tag="attendance" Width="110" IsReadOnly="True" IsVisible="False">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PayrollRowViewModel">
+                  <Button Classes="link attendance" Classes.same="{Binding AttendanceMatches}" HorizontalAlignment="Left" Margin="8,0,0,0"
+                          IsVisible="{Binding HasAttendanceHint}" ToolTip.Tip="{Binding AttendanceTip}"
+                          Command="{Binding $parent[DataGrid].((vm:PayrollViewModel)DataContext).CopyAttendanceCommand}" CommandParameter="{Binding}"
+                          IsEnabled="{Binding CanCopyAttendance}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <TextBlock Text="⇐" IsVisible="{Binding CanCopyAttendance}" FontWeight="Bold" />
+                      <TextBlock Text="✓" IsVisible="{Binding AttendanceMatches}" Foreground="{DynamicResource SuccessBrush}" FontWeight="Bold" />
+                      <TextBlock Text="{Binding AttendanceText}" />
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static r:Strings.ColTotal}" Binding="{Binding TotalText}" IsReadOnly="True" Width="140" CellStyleClasses="num computed schedtip" />
+            <DataGridTemplateColumn Header="{x:Static r:Strings.ColAdvance}" Width="150" IsReadOnly="True" CellStyleClasses="num advancecell">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PayrollRowViewModel">
+                  <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" Margin="0,0,12,0"
+                              Background="Transparent" ToolTip.Tip="{r:T AdvancesTip}">
+                    <Border Classes="debt" IsVisible="{Binding HasDebt}">
+                      <TextBlock Text="{r:T DebtBadge}" />
+                    </Border>
+                    <TextBlock Text="{Binding AdvanceText}" VerticalAlignment="Center" Classes="advance" Classes.zero="{Binding IsZeroAdvance}" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static r:Strings.ColRemainder}" Binding="{Binding RemainderText}" IsReadOnly="True" Width="140" CellStyleClasses="num computed remainder" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </DockPanel>
+    </Border>
+  </DockPanel>
+</UserControl>

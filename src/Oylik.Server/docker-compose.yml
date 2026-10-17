@@ -1,0 +1,20 @@
+# Ishga tushirish (repo ildizidan):
+#   OYLIK_REGISTRATION_KEY=<maxfiy-kalit> docker compose -f src/Oylik.Server/docker-compose.yml up -d --build
+# HTTPS uchun oldiga Caddy yoki Cloudflare Tunnel qo'yiladi (TZ 6).
+services:
+  oylik-server:
+    build:
+      context: ../..
+      dockerfile: src/Oylik.Server/Dockerfile
+    image: oylik-server:latest
+    container_name: oylik-server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      Oylik__RegistrationKey: ${OYLIK_REGISTRATION_KEY:?OYLIK_REGISTRATION_KEY berilishi shart}
+    volumes:
+      - oylik-data:/data
+
+volumes:
+  oylik-data:

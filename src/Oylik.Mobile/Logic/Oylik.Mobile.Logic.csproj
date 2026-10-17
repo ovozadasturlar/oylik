@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Qorovul ilovasining platformadan mustaqil logikasi: lokal baza, qoidalar (A10, "ichkarida"), outbox sinxronizatsiya.
+       MAUI'siz — oddiy net10.0'da testlanadi. Pul ma'lumoti YO'Q. -->
+  <PropertyGroup>
+    <RootNamespace>Oylik.Mobile.Logic</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Oylik.Contracts\Oylik.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Oylik.Mobile.Tests" />
+  </ItemGroup>
+</Project>

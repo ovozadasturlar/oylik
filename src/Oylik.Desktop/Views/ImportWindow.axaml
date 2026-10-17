@@ -1,0 +1,79 @@
+<v:DialogWindow xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:vm="using:Oylik.Desktop.ViewModels"
+                xmlns:v="using:Oylik.Desktop.Views"
+                xmlns:r="using:Oylik.Desktop.Resources"
+                xmlns:d="using:Oylik.Data"
+                x:Class="Oylik.Desktop.Views.ImportWindow"
+                x:DataType="vm:ImportViewModel"
+                Title="{r:T ImportTitle}"
+                Width="1000" Height="720" MinWidth="820" MinHeight="560"
+                WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+  <DockPanel Margin="24,20">
+    <TextBlock DockPanel.Dock="Top" Text="{r:T ImportTitle}" Classes="h1" Margin="0,0,0,14" />
+
+    <!-- Fayl va rejim -->
+    <Border DockPanel.Dock="Top" Classes="card" Padding="18,14" Margin="0,0,0,14">
+      <Grid ColumnDefinitions="*,24,*">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{r:T FileLabel}" Classes="muted" FontWeight="SemiBold" />
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Content="{r:T ChooseFile}" Command="{Binding ChooseFileCommand}" Margin="8,0,0,0" />
+            <TextBlock Text="{Binding FileName}" VerticalAlignment="Center" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+          </DockPanel>
+          <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Grid.Column="2" Spacing="8">
+          <TextBlock Text="{r:T ModeLabel}" Classes="muted" FontWeight="SemiBold" />
+          <RadioButton GroupName="mode" Content="{r:T ModeEmployees}" IsChecked="{Binding !AsPeriod}" />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <RadioButton GroupName="mode" Content="{r:T ModePeriod}" IsChecked="{Binding AsPeriod}" />
+            <ComboBox ItemsSource="{Binding MonthOptions}" SelectedItem="{Binding SelectedMonth}" IsEnabled="{Binding AsPeriod}" MinWidth="150" />
+          </StackPanel>
+          <CheckBox Content="{r:T LinkDuplicates}" IsChecked="{Binding LinkDuplicates}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0,14,0,0">
+      <TextBlock Text="{Binding Error}" Foreground="{DynamicResource NegativeBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                 IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <TextBlock Text="{r:T ImportBackupNote}" Classes="muted" VerticalAlignment="Center" Margin="0,0,12,0" />
+        <Button Content="{r:T Cancel}" Command="{Binding CancelCommand}" />
+        <Button Content="{Binding ImportButtonText}" Command="{Binding ImportCommand}" IsEnabled="{Binding HasPreview}"
+                Classes="Primary" Theme="{DynamicResource SolidButton}" />
+      </StackPanel>
+    </StackPanel>
+
+    <Grid ColumnDefinitions="2*,14,3*" IsVisible="{Binding HasPreview}">
+      <Border Classes="warn">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="{r:T ImportWarnings}" FontWeight="Bold" Foreground="{DynamicResource WarnTitle}" Margin="0,0,0,8" />
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Messages}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="{DynamicResource WarnText}" Margin="0,0,0,6" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+      <Border Grid.Column="2" Classes="card" ClipToBounds="True">
+        <DataGrid ItemsSource="{Binding Rows}" IsReadOnly="True" AutoGenerateColumns="False"
+                  GridLinesVisibility="All" HeadersVisibility="Column" RowHeight="32">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="{r:T ColRow}" Binding="{Binding RowNumber}" Width="60" x:DataType="d:ImportRow" />
+            <DataGridTextColumn Header="{x:Static r:Strings.ColName}" Binding="{Binding FullName}" Width="*" x:DataType="d:ImportRow" />
+            <DataGridTextColumn Header="{x:Static r:Strings.ColSalary}" Binding="{Binding MonthlySalary, StringFormat={}{0:N0}}" Width="110" x:DataType="d:ImportRow" />
+            <DataGridTextColumn Header="{x:Static r:Strings.ColDaily}" Binding="{Binding DailyRate, StringFormat={}{0:N0}}" Width="100" x:DataType="d:ImportRow" />
+            <DataGridTextColumn Header="{x:Static r:Strings.ColDays}" Binding="{Binding DaysWorked}" Width="60" x:DataType="d:ImportRow" />
+            <DataGridTextColumn Header="{x:Static r:Strings.ColAdvance}" Binding="{Binding Advance, StringFormat={}{0:N0}}" Width="100" x:DataType="d:ImportRow" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </Border>
+    </Grid>
+  </DockPanel>
+</v:DialogWindow>
