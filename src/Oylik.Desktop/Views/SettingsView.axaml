@@ -212,6 +212,34 @@
             <SelectableTextBlock Text="{Binding InstallationId}" FontFamily="Consolas, monospace" />
           </StackPanel>
 
+          <!-- Bosqich 3: ko'p-zavod — asosiy mashinada kod yaratish, ikkinchisida mavjud o'rnatmaga ulanish -->
+          <Separator />
+          <DockPanel IsVisible="{Binding IsServerConfigured}">
+            <Button DockPanel.Dock="Right" Content="{r:T CreateJoinCode}" Command="{Binding CreateJoinCodeCommand}" VerticalAlignment="Top" />
+            <StackPanel Spacing="2">
+              <TextBlock Text="{r:T JoinSection}" FontWeight="Bold" />
+              <TextBlock Text="{r:T JoinHint}" Classes="muted" TextWrapping="Wrap" />
+              <SelectableTextBlock Text="{Binding JoinCodeText}" FontWeight="SemiBold" FontFamily="Consolas, monospace"
+                                   IsVisible="{Binding JoinCodeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+          </DockPanel>
+          <StackPanel Spacing="8" IsVisible="{Binding !IsServerConfigured}">
+            <TextBlock Text="{r:T JoinExistingTitle}" FontWeight="Bold" />
+            <TextBlock Text="{r:T JoinExistingHint}" Classes="muted" TextWrapping="Wrap" />
+            <Grid ColumnDefinitions="2*,*,Auto" ColumnSpacing="12">
+              <StackPanel Spacing="4">
+                <TextBlock Text="{r:T JoinInstallationIdLabel}" Classes="muted" FontWeight="SemiBold" />
+                <TextBox Text="{Binding JoinInstallationId}" FontFamily="Consolas, monospace" Watermark="00000000-0000-0000-0000-000000000000" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Text="{r:T JoinCodeLabel}" Classes="muted" FontWeight="SemiBold" />
+                <TextBox Text="{Binding JoinCode}" MaxLength="6" Watermark="000000" />
+              </StackPanel>
+              <Button Grid.Column="2" Content="{r:T JoinButton}" Command="{Binding JoinInstallationCommand}"
+                      IsEnabled="{Binding !IsJoining}" VerticalAlignment="Bottom" />
+            </Grid>
+          </StackPanel>
+
           <Separator />
 
           <DockPanel>
@@ -244,6 +272,75 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Bosqich 1: Rollar — har rol uchun PIN (faqat xesh saqlanadi) -->
+      <Border Classes="card roles" Padding="24">
+        <StackPanel Spacing="10">
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Content="{r:T SwitchRole}" Command="{Binding Main.SwitchRoleCommand}"
+                    IsVisible="{Binding Main.LoginRequired}" />
+            <TextBlock Text="{r:T RolesSection}" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+          </DockPanel>
+          <TextBlock Text="{r:T RolesHint}" Classes="muted" TextWrapping="Wrap" />
+          <ItemsControl ItemsSource="{Binding RolePins}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:RolePinItem">
+                <Grid ColumnDefinitions="130,130,150,Auto,Auto" ColumnSpacing="12" Margin="0,4">
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding StatusText}" Classes="muted" VerticalAlignment="Center" />
+                  <TextBox Grid.Column="2" Text="{Binding NewPin}" PasswordChar="•" MaxLength="8" Watermark="{r:T PinNew}" />
+                  <Button Grid.Column="3" Content="{r:T SetPin}" Command="{Binding SetCommand}" />
+                  <Button Grid.Column="4" Content="{r:T ClearPin}" Command="{Binding ClearCommand}" IsVisible="{Binding HasPin}"
+                          Foreground="{DynamicResource NegativeBrush}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="{Binding RolesMessage}" TextWrapping="Wrap" FontWeight="SemiBold"
+                     IsVisible="{Binding RolesMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </Border>
+
+      <!-- 2.3: Yuz terminali (Hikvision Face ID) -->
+      <Border Classes="card" Padding="24">
+        <StackPanel Spacing="14">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}" IsVisible="{Binding FaceTerminal.IsConnected}" />
+              <Ellipse Width="8" Height="8" Fill="{DynamicResource FaintBrush}" IsVisible="{Binding !FaceTerminal.IsConnected}" />
+              <TextBlock Text="{Binding FaceTerminal.StatusText}" Classes="muted" />
+            </StackPanel>
+            <StackPanel Spacing="2">
+              <TextBlock Text="{r:T TerminalSection}" FontWeight="Bold" FontSize="15" />
+              <TextBlock Text="{r:T TerminalHint}" Classes="muted" TextWrapping="Wrap" />
+            </StackPanel>
+          </DockPanel>
+
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowSpacing="12">
+            <StackPanel Spacing="4">
+              <TextBlock Text="{r:T TerminalUrlLabel}" Classes="muted" FontWeight="SemiBold" />
+              <TextBox Text="{Binding TerminalUrl}" Watermark="http://192.168.1.2" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Text="{r:T TerminalPasswordLabel}" Classes="muted" FontWeight="SemiBold" />
+              <TextBox Text="{Binding TerminalPassword}" PasswordChar="•" />
+            </StackPanel>
+          </Grid>
+
+          <CheckBox Content="{r:T TerminalEnabledLabel}" IsChecked="{Binding TerminalEnabled}" />
+          <CheckBox Content="{r:T TerminalRequireConfirmLabel}" IsChecked="{Binding TerminalRequireConfirm}" />
+
+          <WrapPanel ItemSpacing="8" LineSpacing="8">
+            <Button Content="{r:T TerminalSave}" Theme="{DynamicResource SolidButton}" Classes="Primary"
+                    Command="{Binding SaveTerminalCommand}" IsEnabled="{Binding !TerminalBusy}" />
+            <Button Content="{r:T TerminalTest}" Command="{Binding TestTerminalCommand}" IsEnabled="{Binding !TerminalBusy}" />
+            <Button Content="{r:T TerminalSyncAll}" Command="{Binding SyncAllTerminalCommand}"
+                    IsEnabled="{Binding !TerminalBusy}" ToolTip.Tip="{r:T TerminalSyncAllHint}" />
+          </WrapPanel>
+          <TextBlock Text="{Binding TerminalMessage}" TextWrapping="Wrap" FontWeight="SemiBold"
+                     IsVisible="{Binding TerminalMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
       </Border>
     </StackPanel>

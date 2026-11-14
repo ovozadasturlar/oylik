@@ -27,7 +27,7 @@ public partial class PayrollView : UserControl
             }
             _editing = true;
         };
-        GridEditing.Attach(Grid, () => Vm is { IsOpen: true });
+        GridEditing.Attach(Grid, () => Vm is { IsGridReadOnly: false });
         Grid.CellEditEnded += (_, _) => _editing = false;
         Grid.AddHandler(KeyDownEvent, OnGridKeyDown, RoutingStrategies.Tunnel, handledEventsToo: true);
         Grid.CellPointerPressed += OnCellPointerPressed;

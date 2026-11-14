@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using Oylik.Core.Domain;
 using Oylik.Data;
 using Oylik.Desktop.Resources;
+using Oylik.Desktop.Services;
 using Oylik.Desktop.Views;
 using Serilog;
 
@@ -20,6 +21,8 @@ public sealed partial class EmployeeRowViewModel(EmployeesViewModel parent, Empl
 {
     private static readonly IBrush Ink = Palette.Get("InkBrush");
     private static readonly IBrush Manual = Palette.Get("ManualBrush");
+    private static readonly IBrush Faced = Palette.Get("SuccessBrush");
+    private static readonly IBrush NoFace = Palette.Get("FaintBrush");
 
     public Employee Employee { get; } = employee;
 
@@ -125,6 +128,14 @@ public sealed partial class EmployeeRowViewModel(EmployeesViewModel parent, Empl
 
     public bool IsSchedule => Employee.PayMode == PayMode.Schedule;
 
+    /// <summary>Yuz terminali yoqilgan bo'lsa — qatorда «yuz yuklash» tugmasi ko'rinadi.</summary>
+    public bool TerminalEnabled => parent.Main.FaceTerminal.IsEnabled;
+
+    /// <summary>Terminalda shu xodimning yuzi bormi — ikona rangi (yashil/kulrang) va maslahat shunga qarab.</summary>
+    public bool HasFace => Employee.TabelNo > 0 && parent.Main.FaceTerminal.FacedTabels.Contains(Employee.TabelNo);
+    public IBrush FaceBrush => HasFace ? Faced : NoFace;
+    public string FaceTip => HasFace ? Strings.TerminalFaceHas : Strings.TerminalEnrollFace;
+
     public string ScheduleText => parent.ScheduleTextOf(Employee);
 
     [RelayCommand]
@@ -135,6 +146,9 @@ public sealed partial class EmployeeRowViewModel(EmployeesViewModel parent, Empl
 
     [RelayCommand]
     private Task Delete() => parent.DeleteAsync(this);
+
+    [RelayCommand]
+    private Task EnrollFace() => parent.EnrollFaceAsync(this);
 
     public void Refresh() => OnPropertyChanged(string.Empty);
 
@@ -150,6 +164,13 @@ public sealed partial class EmployeesViewModel(MainWindowViewModel main) : Obser
 {
     public MainWindowViewModel Main => main;
     public ObservableCollection<EmployeeRowViewModel> Rows { get; } = [];
+
+    /// <summary>Terminaldan yuz holati o'zgarganda — qatorlardagi yuz ikonasini (rang/maslahat) yangilaydi.</summary>
+    public void RefreshFaces()
+    {
+        foreach (var row in Rows)
+            row.Refresh();
+    }
 
     [ObservableProperty] private EmployeeFilter _filter = EmployeeFilter.Active;
     [ObservableProperty] private string _searchText = "";
@@ -176,6 +197,8 @@ public sealed partial class EmployeesViewModel(MainWindowViewModel main) : Obser
 
     internal async Task OpenScheduleAsync(EmployeeRowViewModel row)
     {
+        if (!main.Demand(Access.Edit))
+            return;
         var vm = new AssignScheduleViewModel(main, row.Employee);
         await main.Dialogs.ShowDialogAsync(new Views.AssignScheduleWindow { DataContext = vm });
         if (vm.Changed)
@@ -273,14 +296,23 @@ public sealed partial class EmployeesViewModel(MainWindowViewModel main) : Obser
         RefreshCounts();
         if (branchChanged)
             main.RefreshBranchOptions(); // «Belgilanmagan» paydo bo'lishi/yo'qolishi mumkin
+        _ = main.FaceTerminal.PushEmployeeAsync(row.Employee); // desktop → terminal (ID+ism), best-effort
     }
+
+    /// <summary>Xodimга terminalда yuz (foto) yuklaydi: foto tanlanadi, terminalга yoziladi (UserInfo bo'lmasa — oldin yaratiladi).</summary>
+    /// <summary>Yuz biriktirish: terminalda olish yoki bor rasmni yuklash (umumiy oqim).</summary>
+    public Task EnrollFaceAsync(EmployeeRowViewModel row) => FaceEnroll.RunAsync(main, row.Employee);
 
     public async Task DeleteAsync(EmployeeRowViewModel row)
     {
+        if (!main.Demand(Access.Edit))
+            return;
         if (!row.CanDelete || !await main.Dialogs.ConfirmAsync(Strings.ConfirmDeleteEmployee(row.Employee.FullName)))
             return;
+        var tabel = row.Employee.TabelNo;
         if (await main.RunAsync(() => main.Service.DeleteEmployeeAsync(row.Employee)))
         {
+            _ = main.FaceTerminal.RemoveEmployeeAsync(tabel); // terminaldan ham o'chiriladi, best-effort
             Load();
             main.RefreshBranchOptions();
         }
@@ -290,8 +322,10 @@ public sealed partial class EmployeesViewModel(MainWindowViewModel main) : Obser
     [RelayCommand]
     private async Task NewEmployee()
     {
+        if (!main.Demand(Access.Edit))
+            return;
         Employee? created = null;
-        if (!await main.RunAsync(async () => created = await main.Service.CreateEmployeeAsync(Strings.NewEmployeeTitle, 0, null, null, main.DefaultBranchId)))
+        if (!await main.RunAsync(async () => created = await main.Service.CreateEmployeeInRosterAsync(Strings.NewEmployeeTitle, 0, null, null, main.DefaultBranchId)))
             return;
         if (Filter == EmployeeFilter.Inactive)
             Filter = EmployeeFilter.Active;

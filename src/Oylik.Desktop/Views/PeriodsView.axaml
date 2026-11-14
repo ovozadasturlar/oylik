@@ -7,10 +7,11 @@
   <DockPanel Margin="24,20,24,16">
     <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,16" ItemSpacing="10" LineSpacing="10">
       <TextBlock Text="{r:T NavPeriods}" Classes="h1" VerticalAlignment="Center" Margin="0,0,16,0" />
-      <Button Content="{Binding NewPeriodText}" Command="{Binding NewPeriodCommand}" Classes="Primary" Theme="{DynamicResource SolidButton}" />
+      <Button Content="{Binding NewPeriodText}" Command="{Binding NewPeriodCommand}" Classes="Primary" Theme="{DynamicResource SolidButton}"
+              IsVisible="{Binding Main.CanEdit}" />
       <Button Content="{r:T OpenPeriod}" Command="{Binding OpenCommand}" />
-      <Button Content="{r:T ClosePeriod}" Command="{Binding CloseCommand}" />
-      <Button Content="{r:T ReopenPeriod}" Command="{Binding ReopenCommand}" />
+      <Button Content="{r:T ClosePeriod}" Command="{Binding CloseCommand}" IsVisible="{Binding Main.CanEdit}" />
+      <Button Content="{r:T ReopenPeriod}" Command="{Binding ReopenCommand}" IsVisible="{Binding Main.CanEdit}" />
     </WrapPanel>
 
     <Border DockPanel.Dock="Bottom" Classes="warn" Margin="0,16,0,0">

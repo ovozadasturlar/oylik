@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Oylik.Core.Domain;
 using Oylik.Desktop.Resources;
+using Oylik.Desktop.Services;
 
 namespace Oylik.Desktop.ViewModels;
 
@@ -63,7 +64,7 @@ public sealed partial class MainWindowViewModel
             return;
         var setting = value.Filter.ToSetting();
         if (Service.Settings.BranchFilter != setting)
-            _ = RunAsync(() => Service.SaveSettingsAsync(s => s.BranchFilter = setting));
+            _ = RunAsync(() => Service.SaveSettingsAsync(s => s.BranchFilter = setting), Access.View);
         Payroll.OnBranchFilterChanged();
         Employees.Load();
         Attendance.OnBranchFilterChanged();

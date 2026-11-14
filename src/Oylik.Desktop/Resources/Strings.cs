@@ -317,6 +317,152 @@ public static partial class Strings
     public static string ServerUnreachable(string error) => F($"Serverga ulanib bo'lmadi: {error}", $"Не удалось подключиться к серверу: {error}");
     public static string ServerNotConfigured => L("Server: sozlanmagan", "Сервер: не настроен");
 
+    // ---------- Ko'p-zavod: ulanish (Bosqich 3) ----------
+    public static string JoinSection => L("Boshqa zavod", "Другой завод");
+    public static string JoinHint => L(
+        "Ikkinchi zavod kompyuterini shu o'rnatmaga ulash: «Ulanish kodi yaratish»ni bosing va u yerda server manzili, yuqoridagi Kompyuter ID va kodni kiriting. Har kompyuter o'z kalitini oladi; xodimlar va davomat umumiy bo'ladi.",
+        "Подключение компьютера второго завода к этой установке: нажмите «Создать код подключения» и введите там адрес сервера, ID компьютера (выше) и код. Каждый компьютер получает свой ключ; сотрудники и посещаемость общие.");
+    public static string CreateJoinCode => L("Ulanish kodi yaratish", "Создать код подключения");
+    public static string JoinCodeCreated(string code, DateTimeOffset until) => F(
+        $"Ulanish kodi: {code} — {until:HH:mm} gacha, bir martalik.",
+        $"Код подключения: {code} — до {until:HH:mm}, одноразовый.");
+    public static string JoinExistingTitle => L("Mavjud o'rnatmaga ulanish (2-zavod)", "Подключиться к существующей установке (2-й завод)");
+    public static string JoinExistingHint => L(
+        "Yuqorida server manzilini kiriting (ro'yxatdan o'tish kaliti kerak emas), keyin asosiy kompyuter ID va ulanish kodini.",
+        "Укажите выше адрес сервера (ключ регистрации не нужен), затем ID основного компьютера и код подключения.");
+    public static string JoinInstallationIdLabel => L("Asosiy kompyuter ID", "ID основного компьютера");
+    public static string JoinCodeLabel => L("Ulanish kodi", "Код подключения");
+    public static string JoinButton => L("Ulanish", "Подключиться");
+    public static string JoinInstallationIdInvalid => L("Asosiy kompyuter ID noto'g'ri.", "Неверный ID основного компьютера.");
+    public static string JoinCodeRequired => L("Ulanish kodini kiriting.", "Введите код подключения.");
+    public static string JoinCodeWrong => L("Kod yoki kompyuter ID noto'g'ri.", "Неверный код или ID компьютера.");
+    public static string JoinCodeUsed => L("Bu kod allaqachon ishlatilgan — yangisini yarating.", "Этот код уже использован — создайте новый.");
+    public static string JoinCodeExpired => L("Kod muddati o'tgan — yangisini yarating.", "Срок действия кода истёк — создайте новый.");
+    public static string JoinTooManyAttempts => L("Urinishlar ko'p — bir daqiqadan keyin qayta urining.", "Слишком много попыток — повторите через минуту.");
+    public static string JoinedInstallation(int tabelBase) => F(
+        $"Ulandi. Bu kompyuterda yangi xodimlar tabel raqami {tabelBase} dan boshlanadi.",
+        $"Подключено. Табельные номера новых сотрудников на этом компьютере начнутся с {tabelBase}.");
+    public static string ConfirmJoinWithEmployees(int count) => F(
+        $"Bu kompyuterda {count} ta xodim bor. Ularning tabel raqamlari asosiy zavod xodimlariniki bilan bir xil bo'lishi mumkin — shunday raqamli voqealar terminaldan o'qilmaydi.\n\nUlanish odatda yangi o'rnatmada qilinadi. Davom etilsinmi?",
+        $"На этом компьютере {count} сотрудник(ов). Их табельные номера могут совпасть с номерами основного завода — события с такими номерами не будут считаны с терминала.\n\nОбычно подключают новую установку. Продолжить?");
+
+    // ---------- Rollar va kirish (Bosqich 1) ----------
+    public static string RoleName(UserRole role) => role switch
+    {
+        UserRole.Admin => L("Admin", "Администратор"),
+        UserRole.Accountant => L("Buxgalter", "Бухгалтер"),
+        UserRole.Manager => L("Rahbar", "Руководитель"),
+        UserRole.Guard => L("Qorovul", "Охранник"),
+        _ => role.ToString(),
+    };
+    public static string LoginTitle => L("Kirish", "Вход");
+    public static string LoginHint => L("Rolingizni tanlang va PIN kiriting.", "Выберите роль и введите PIN.");
+    public static string LoginRole => L("Rol", "Роль");
+    public static string LoginPin => L("PIN", "PIN");
+    public static string LoginButton => L("Kirish", "Войти");
+    public static string LoginWrongPin => L("PIN noto'g'ri.", "Неверный PIN.");
+    public static string LoginLockedOut(int seconds) => F(
+        $"Juda ko'p urinish. {seconds} soniyadan keyin qayta urinib ko'ring.",
+        $"Слишком много попыток. Повторите через {seconds} с.");
+    public static string SwitchRole => L("Rolni almashtirish", "Сменить роль");
+    public static string NoPermission => L("Bu amal uchun ruxsat yo'q (joriy rol).", "Нет прав на это действие (текущая роль).");
+    public static string RolesSection => L("Rollar", "Роли");
+    public static string RolesHint => L(
+        "Har rol uchun PIN (4–8 raqam). Admin PINi o'rnatilmaguncha dastur kirish so'ramaydi va Admin sifatida ochiladi. PIN o'rnatilmagan rol bilan kirib bo'lmaydi.",
+        "PIN для каждой роли (4–8 цифр). Пока PIN администратора не задан, программа не запрашивает вход и открывается как администратор. Под ролью без PIN войти нельзя.");
+    public static string PinIsSet => L("PIN o'rnatilgan", "PIN задан");
+    public static string PinNotSet => L("PIN yo'q", "PIN не задан");
+    public static string PinNew => L("Yangi PIN", "Новый PIN");
+    public static string SetPin => L("O'rnatish", "Задать");
+    public static string ClearPin => L("Tiklash", "Сбросить");
+    public static string PinInvalid => L("PIN 4–8 ta raqamdan iborat bo'lishi kerak.", "PIN должен состоять из 4–8 цифр.");
+    public static string PinSaved(UserRole role) => F($"{RoleName(role)}: PIN saqlandi.", $"{RoleName(role)}: PIN сохранён.");
+    public static string PinCleared(UserRole role) => F($"{RoleName(role)}: PIN olib tashlandi.", $"{RoleName(role)}: PIN сброшен.");
+    public static string ClearAdminPinConfirm => L(
+        "Admin PINi olib tashlansa, dastur kirish so'ramaydi (hamma Admin sifatida ochadi). Davom etilsinmi?",
+        "Если сбросить PIN администратора, программа перестанет запрашивать вход (все откроют её как администратор). Продолжить?");
+    public static string CurrentRoleLabel(UserRole role) => F($"Rol: {RoleName(role)}", $"Роль: {RoleName(role)}");
+
+    // ---------- Yuz terminali (2.3) ----------
+    public static string FaceTerminal => L("Yuz terminali", "Терминал распознавания лиц");
+    public static string TerminalSection => L("Face ID terminal", "Терминал Face ID");
+    public static string TerminalHint => L(
+        "Hikvision yuz terminali manzilini va admin parolini kiriting. Server terminaldan kelish/ketishni avtomatik o'qiydi.",
+        "Введите адрес терминала Hikvision и пароль администратора. Сервер автоматически считывает приходы/уходы с терминала.");
+    public static string TerminalUrlLabel => L("Terminal manzili (masalan 192.168.1.2)", "Адрес терминала (например 192.168.1.2)");
+    public static string TerminalPasswordLabel => L("Admin paroli", "Пароль администратора");
+    public static string TerminalEnabledLabel => L("Terminaldan davomat o'qilsin", "Считывать посещаемость с терминала");
+    public static string TerminalRequireConfirmLabel => L(
+        "Ekranda «Kelish/Ketish»ni xodim tanlasin (aks holda 1-tanish Kelish, keyingisi Ketish)",
+        "Сотрудник сам выбирает «Приход/Уход» на экране (иначе 1-е распознавание — Приход, следующее — Уход)");
+    public static string TerminalTest => L("Tekshirish", "Проверить");
+    public static string TerminalSave => L("Saqlash", "Сохранить");
+    public static string TerminalConnected => L("Terminal: ulangan", "Терминал: подключён");
+    /// <summary>Bosqich 2: terminal davomatini fon agenti o'qiyapti (desktop so'ramaydi).</summary>
+    public static string TerminalViaAgent(DateTimeOffset? lastSeen) => lastSeen is { } at
+        ? F($"Terminal: fon xizmati orqali · oxirgi {at:HH:mm}", $"Терминал: через фоновую службу · последний {at:HH:mm}")
+        : L("Terminal: fon xizmati orqali", "Терминал: через фоновую службу");
+    public static string TerminalNotConnected => L("Terminal: ulanmagan", "Терминал: нет связи");
+    public static string TerminalDisabled => L("Terminal: o'chiq", "Терминал: выключен");
+    public static string TerminalUrlRequired => L("Terminal manzilini kiriting.", "Введите адрес терминала.");
+    public static string TerminalPasswordRequired => L("Admin parolini kiriting.", "Введите пароль администратора.");
+    public static string TerminalTestOk(string model, string fw) =>
+        F($"Ulandi: {model} (proshivka {fw}).", $"Подключено: {model} (прошивка {fw}).");
+    public static string TerminalSaved => L("Terminal sozlamalari saqlandi.", "Настройки терминала сохранены.");
+    public static string TerminalSyncAll => L("Xodimlarni terminalga yozish", "Записать сотрудников в терминал");
+    public static string TerminalSyncAllHint => L(
+        "Hamma xodim terminalga ID+ism bilan yoziladi (yuzni terminalda yoki fotodan qo'shasiz).",
+        "Все сотрудники записываются в терминал с ID+именем (лицо добавляете на терминале или из фото).");
+    public static string TerminalSyncResult(int ok, int fail) => fail == 0
+        ? L($"{ok} ta xodim terminalga yozildi.", $"Записано сотрудников: {ok}.")
+        : L($"{ok} ta yozildi, {fail} ta xato.", $"Записано: {ok}, ошибок: {fail}.");
+    public static string TerminalEnrollFace => L(
+        "Yuz qo'shish (terminalda olish yoki rasm yuklash)", "Добавить лицо (снять на терминале или загрузить фото)");
+    public static string TerminalFaceHas => L("Yuz qo'yilgan — almashtirish uchun bosing", "Лицо добавлено — нажмите, чтобы заменить");
+    public static string TerminalFaceTitle => L("Yuz qo'shish", "Добавить лицо");
+    public static string TerminalFacePrompt(string name) => F(
+        $"{name} uchun yuzni qanday qo'shamiz?", $"Как добавить лицо для {name}?");
+    public static string TerminalFaceCapture => L("Terminalda olish", "Снять на терминале");
+    public static string TerminalFaceUpload => L("Rasm yuklash", "Загрузить фото");
+    public static string TerminalFaceLookAtCamera => L(
+        "Xodim terminal oldiga kelib, kameraga to'g'ri qarab tursin — shundan keyin «OK» bosing. "
+        + "Yuz olingunча (~30 soniya) qarab tursin. (Terminalda Kelish/Ketish turgani xalaqit bermaydi.)",
+        "Пусть сотрудник встанет перед терминалом и смотрит прямо в камеру — затем нажмите «OK». "
+        + "Пусть смотрит, пока лицо не снимется (~30 секунд). (Приход/Уход на экране не мешает.)");
+    public static string TerminalFaceUploaded => L("Yuz terminalga yuklandi.", "Лицо загружено в терминал.");
+    public static string TerminalFacePickImage => L("Yuz surati (JPEG)", "Фото лица (JPEG)");
+
+    /// <summary>Bosqich 2: server sinxronini fon agenti qilyapti.</summary>
+    public static string ServerViaAgent(DateTimeOffset? lastSync) => lastSync is { } at
+        ? F($"Server: fon xizmati orqali · oxirgi {at:HH:mm}", $"Сервер: через фоновую службу · последняя {at:HH:mm}")
+        : L("Server: fon xizmati orqali", "Сервер: через фоновую службу");
+
+    // Bosqich 2: Oylik.Agent tray ikonasi (agent bu faylni havola qilib kompilyatsiya qiladi — Avalonia'siz qismi)
+    public static string AgentTrayTitle => L("Oylik agent", "Oylik агент");
+    public static string AgentStarting => L("Ishga tushmoqda…", "Запускается…");
+    public static string AgentTerminalLine(Oylik.Data.Agent.AgentStatus s) =>
+        !s.TerminalEnabled ? L("Terminal: o'chiq", "Терминал: выключен")
+        : s.TerminalConnected && s.LastPollAt is { } at
+            ? F($"Terminal: ulangan · oxirgi {at.ToLocalTime():HH:mm}", $"Терминал: подключён · последний {at.ToLocalTime():HH:mm}")
+        : s.LastPollAt is { } last
+            ? F($"Terminal: topilmadi · oxirgi {last.ToLocalTime():HH:mm}", $"Терминал: не найден · последний {last.ToLocalTime():HH:mm}")
+            : L("Terminal: topilmadi", "Терминал: не найден");
+    public static string AgentEventsToday(int count) => F($"Bugun: {count} ta voqea", $"Сегодня: событий {count}");
+    public static string AgentServerLine(Oylik.Data.Agent.AgentStatus s) =>
+        !s.ServerConfigured ? L("Server: sozlanmagan", "Сервер: не настроен")
+        : s.SyncError is not null
+            ? s.LastSyncAt is { } failedAt
+                ? F($"Server: xato · oxirgi {failedAt.ToLocalTime():HH:mm}", $"Сервер: ошибка · последняя {failedAt.ToLocalTime():HH:mm}")
+                : L("Server: xato", "Сервер: ошибка")
+        : s.LastSyncAt is { } at
+            ? F($"Server: sinxron · oxirgi {at.ToLocalTime():HH:mm}", $"Сервер: синхронизирован · последняя {at.ToLocalTime():HH:mm}")
+            : L("Server: hali sinxronlanmagan", "Сервер: ещё не синхронизирован");
+    public static string AgentLastError(string error) => F($"Xato: {error}", $"Ошибка: {error}");
+    public static string AgentMenuStatus => L("Holat", "Состояние");
+    public static string AgentMenuLogs => L("Loglarni ochish", "Открыть логи");
+    public static string AgentMenuExit => L("Chiqish (agentni to'xtatish)", "Выход (остановить агент)");
+    public static string AgentStatusClose => L("Yopish", "Закрыть");
+
     /// <summary>`Server: ulangan · lokal · oxirgi 10:41 · Qorovul-1 (10:40)`</summary>
     public static string ServerStatus(Oylik.Data.Sync.ServerRoute route, DateTimeOffset? lastSync, string? device, DateTimeOffset? deviceSeen)
     {
@@ -800,6 +946,8 @@ public static partial class Strings
         "OvertimePolicy" => L("Ortiqcha ish siyosati", "Правило сверхурочных"),
         "Updated" => L("O'zgartirildi", "Изменено"),
         "Name" => L("Nomi", "Название"),
+        "RolePinSet" => L("Rol PINi o'rnatildi", "PIN роли задан"),
+        "RolePinCleared" => L("Rol PINi olib tashlandi", "PIN роли сброшен"),
         _ => field,
     };
 

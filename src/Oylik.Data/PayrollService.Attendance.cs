@@ -6,8 +6,8 @@ namespace Oylik.Data;
 /// <summary>2-bosqich: davomat voqealari, qurilmalar, server sinxronizatsiyasi uchun lokal holat.</summary>
 public sealed partial class PayrollService
 {
-    /// <summary>Ishga tushganda shuncha kunlik voqealar yuklanadi; eskilari oy tanlanganda.</summary>
-    private const int PreloadDays = 400;
+    /// <summary>Ishga tushganda shuncha kunlik voqealar yuklanadi; eskilari oy tanlanganda. Agent'ga oxirgi holat yetarli.</summary>
+    private int PreloadDays => AttendanceOnly ? 40 : 400;
 
     private readonly HashSet<MonthKey> _loadedMonths = [];
     private DateTimeOffset _preloadedFrom;
@@ -170,9 +170,11 @@ public sealed partial class PayrollService
     public async Task ReplaceDevicesAsync(IEnumerable<Device> devices)
     {
         var incoming = devices.ToDictionary(d => d.Id);
+        var terminalId = TerminalDevice?.Id;
         foreach (var local in _db.Devices.Local.ToList())
         {
-            if (!incoming.ContainsKey(local.Id))
+            // Yuz terminali serverda ro'yxatdan o'tmaydi (lokal qurilma) — uni o'chirmaymiz.
+            if (!incoming.ContainsKey(local.Id) && local.Id != terminalId)
                 _db.Devices.Remove(local);
         }
         foreach (var d in incoming.Values)
@@ -193,6 +195,11 @@ public sealed partial class PayrollService
 
     public Device? FindDevice(Guid? id) => id is { } x ? _db.Devices.Local.FirstOrDefault(d => d.Id == x) : null;
 
+    /// <summary>Joriy yuz terminalining qurilma yozuvi (seriya bo'yicha; LastSeenAt — oxirgi muvaffaqiyatli poll).</summary>
+    public Device? TerminalDevice => Settings.TerminalSerial is { Length: > 0 } serial
+        ? FindDevice(DeterministicGuid($"hik-terminal:{serial}"))
+        : null;
+
     /// <summary>Server ulanishi (ro'yxatdan o'tish natijasi) saqlanadi; kursor boshidan.</summary>
     /// <summary>Yangi ulanish (ro'yxatdan o'tish yoki uzish): manzillar, API kalit; kursor boshidan.</summary>
     public Task SaveServerConnectionAsync(string? localUrl, string? globalUrl, string? apiKey) => RunAsync(e =>
@@ -203,6 +210,7 @@ public sealed partial class PayrollService
         Settings.ApiKey = apiKey;
         Settings.LastEventSeq = 0;
         Settings.LastSyncAt = null;
+        Settings.EmployeesSyncedAt = null; // Bosqich 3: yangi server — xodimlar ham boshidan
     });
 
     /// <summary>Faqat manzillar o'zgardi (server o'sha — qayta ro'yxatdan o'tish shart emas, kursor saqlanadi).</summary>

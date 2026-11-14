@@ -17,7 +17,7 @@ public sealed partial class LocalizationTests : IDisposable
     public void Dispose() => Strings.SetLanguage(UiLanguage.UzLatn);
 
     /// <summary>Kirill/rus matnda ruxsat etilgan lotin: qisqartmalar, klaviatura, URL, dastur nomi.</summary>
-    [GeneratedRegex(@"https?://\S+|oylik\.example\.uz|\b(OK|QR|URL|ID|API|Excel|Ctrl|Enter|Tab|Esc|Delete|F2|F|N|Google|Drive|localhost|Oylik|Wi|Fi|LAN|PDF|Telegram|Desktop|V|OY|pdf)\b")]
+    [GeneratedRegex(@"https?://\S+|oylik\.example\.uz|\b(OK|QR|URL|ID|API|Excel|Ctrl|Enter|Tab|Esc|Delete|F2|F|N|Google|Drive|localhost|Oylik|Wi|Fi|LAN|PDF|Telegram|Desktop|Face|Hikvision|JPEG|PNG|PIN|V|OY|pdf)\b")]
     private static partial Regex AllowedLatin();
 
     /// <summary>PDF: dasturning o'z matnlaridagi har bir belgi joylangan shriftlarda bor («?» ga almashmaydi).</summary>
@@ -86,18 +86,40 @@ public sealed partial class LocalizationTests : IDisposable
             yield return ($"OvertimePolicyName.{policy}", Strings.OvertimePolicyName(policy, 30_000));
         foreach (var kind in Enum.GetValues<ExcusedKind>())
             yield return ($"ExcusedName.{kind}", Strings.ExcusedName(kind));
+        foreach (var role in Enum.GetValues<UserRole>())
+            yield return ($"RoleName.{role}", Strings.RoleName(role));
         foreach (var mode in Enum.GetValues<PayMode>())
             yield return ($"PayModeName.{mode}", Strings.PayModeName(mode));
+        // Bosqich 2: agent tray — terminal/server holatining barcha tarmoqlari
+        var agentStates = new (string Name, Oylik.Data.Agent.AgentStatus Status)[]
+        {
+            ("Off", AgentOk with { TerminalEnabled = false, ServerConfigured = false }),
+            ("Lost", AgentOk with { TerminalConnected = false, SyncError = "timeout" }),
+            ("Never", AgentOk with { TerminalConnected = false, LastPollAt = null, LastSyncAt = null, SyncError = "timeout" }),
+            ("NotSynced", AgentOk with { LastSyncAt = null }),
+        };
+        foreach (var (name, status) in agentStates)
+        {
+            yield return ($"AgentTerminalLine.{name}", Strings.AgentTerminalLine(status));
+            yield return ($"AgentServerLine.{name}", Strings.AgentServerLine(status));
+        }
         for (var month = 1; month <= 12; month++)
             yield return ($"MonthName.{month}", Strings.MonthName(month));
         foreach (var day in Enum.GetValues<DayOfWeek>())
             yield return ($"WeekDay.{day}", Strings.WeekDayShort(day));
     }
 
+    private static readonly Oylik.Data.Agent.AgentStatus AgentOk = new()
+    {
+        TerminalEnabled = true, TerminalConnected = true, LastPollAt = At, TodayEvents = 12,
+        ServerConfigured = true, LastSyncAt = At, UpdatedAt = At,
+    };
+
     private static object? Sample(Type type) =>
         type == typeof(string) ? "Олим" :
         type == typeof(int) ? 3 :
         type == typeof(decimal) ? 47.5m :
+        type == typeof(UserRole) ? UserRole.Accountant :
         type == typeof(DateTimeOffset) ? At :
         type == typeof(DateTimeOffset?) ? At :
         type == typeof(DateOnly) ? new DateOnly(2026, 10, 12) :
@@ -109,6 +131,7 @@ public sealed partial class LocalizationTests : IDisposable
         type == typeof(AttendanceEventType) ? AttendanceEventType.In :
         type == typeof(Branch) ? new Branch { Name = "1-tarmoq" } :
         type == typeof(Oylik.Data.Sync.ServerRoute) ? Oylik.Data.Sync.ServerRoute.Local :
+        type == typeof(Oylik.Data.Agent.AgentStatus) ? AgentOk :
         type == typeof(WorkSchedule) ? new WorkSchedule { Id = WorkSchedule.SampleDailyId, Name = "Sutkalik 08:00–08:00, kun ora", Kind = ScheduleKind.Cycle, DurationMinutes = 1440 } :
         type == typeof(PayMode) ? PayMode.Schedule :
         type == typeof(long) ? 6_000_000L :

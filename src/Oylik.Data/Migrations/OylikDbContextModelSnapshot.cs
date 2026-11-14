@@ -79,6 +79,9 @@ namespace Oylik.Data.Migrations
                     b.Property<int>("DaysInMonth")
                         .HasColumnType("INTEGER");
 
+                    b.Property<long?>("EmployeesSyncedAt")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("GreenPercent")
                         .HasColumnType("INTEGER");
 
@@ -120,6 +123,27 @@ namespace Oylik.Data.Migrations
 
                     b.Property<bool>("ShortInputEnabled")
                         .HasColumnType("INTEGER");
+
+                    b.Property<int>("TabelBase")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("TerminalEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("TerminalLastSerial")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TerminalPassword")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("TerminalRequireConfirm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TerminalSerial")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TerminalUrl")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Theme")
                         .HasColumnType("INTEGER");
@@ -326,6 +350,10 @@ namespace Oylik.Data.Migrations
                     b.Property<int>("PayMode")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("SyncHash")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("TabelNo")
                         .HasColumnType("INTEGER");
 
@@ -368,6 +396,27 @@ namespace Oylik.Data.Migrations
                     b.HasIndex("EmployeeId", "EffectiveFrom");
 
                     b.ToTable("ScheduleAssignments");
+                });
+
+            modelBuilder.Entity("Oylik.Core.Domain.EmployeeTombstone", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("DeletedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TabelNo")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmployeeTombstones");
                 });
 
             modelBuilder.Entity("Oylik.Core.Domain.ExcusedDay", b =>
@@ -495,6 +544,30 @@ namespace Oylik.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Periods");
+                });
+
+            modelBuilder.Entity("Oylik.Core.Domain.RolePin", b =>
+                {
+                    b.Property<int>("Role")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("Hash")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<int>("Iterations")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("Salt")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<long>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Role");
+
+                    b.ToTable("RolePins");
                 });
 
             modelBuilder.Entity("Oylik.Core.Domain.ScheduleOverride", b =>

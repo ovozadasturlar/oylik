@@ -27,6 +27,7 @@ internal sealed class FakeDialogs : IDialogs
     public Task MessageAsync(string title, string message) => Task.CompletedTask;
     public Task<int> ChooseAsync(string title, string message, params string[] options) { Asked.Add(message); return Task.FromResult(Choice); }
     public Task<string?> PickOpenExcelAsync() => Task.FromResult<string?>(null);
+    public Task<string?> PickImageAsync() => Task.FromResult<string?>(null);
     public Task<string?> PickSaveExcelAsync(string suggestedName) => Task.FromResult<string?>(null);
     public Task<string?> PickFolderAsync() => Task.FromResult<string?>(null);
     public Task ShowDialogAsync(Window dialog) => Task.CompletedTask;

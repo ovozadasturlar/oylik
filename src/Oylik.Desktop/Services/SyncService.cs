@@ -24,11 +24,15 @@ public sealed partial class SyncService : ObservableObject
     private bool _syncing;
     private bool _syncAgain;
 
+    private readonly Func<bool> _agentRunning;
+
     /// <param name="runDb">Bazaga yozuvchi amallar shu orqali (bitta DbContext — ketma-ket).</param>
-    public SyncService(PayrollService service, Func<Func<Task>, Task> runDb)
+    /// <param name="agentRunning">Bosqich 2: fon agenti ishlayaptimi — bo'lsa serverga agent ulanadi, desktop faqat holatni ko'rsatadi.</param>
+    public SyncService(PayrollService service, Func<Func<Task>, Task> runDb, Func<bool>? agentRunning = null)
     {
         _service = service;
         _runDb = runDb;
+        _agentRunning = agentRunning ?? (() => false);
         _sync = new ServerSync(service, runDb);
         service.EmployeesChanged += (_, _) =>
         {
@@ -40,9 +44,19 @@ public sealed partial class SyncService : ObservableObject
         };
     }
 
+    /// <summary>Bosqich 3: serverdan (boshqa zavoddan) kelgan yangi/o'zgargan xodimlar — shu zavod terminaliga yoziladi.</summary>
+    public Func<EmployeePullResult, Task>? EmployeesPulled
+    {
+        get => _sync.EmployeesPulled;
+        set => _sync.EmployeesPulled = value;
+    }
+
     [ObservableProperty] private bool _isConnected;
     [ObservableProperty] private string _statusText = Strings.ServerNotConfigured;
     [ObservableProperty] private string? _lastError;
+
+    /// <summary>Server sinxronini fon agenti qilyapti.</summary>
+    [ObservableProperty] private bool _isAgentMode;
 
     /// <summary>Sinxronizatsiyadan keyin (yangi voqealar bo'lishi mumkin) — ekranlar yangilanadi.</summary>
     public event EventHandler? Synced;
@@ -112,6 +126,17 @@ public sealed partial class SyncService : ObservableObject
             UpdateStatus();
             return;
         }
+        if (_agentRunning())
+        {
+            // Agent birlamchi: desktopdagi qo'lda tuzatishlar (PendingPush) va xodimlar bazadan agent orqali ketadi.
+            IsAgentMode = true;
+            IsConnected = _service.Settings.LastSyncAt is { } last && TimeProvider.System.GetUtcNow() - last <= 3 * Interval;
+            LastError = null;
+            UpdateStatus();
+            Synced?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+        IsAgentMode = false;
 
         _syncing = true;
         try
@@ -154,6 +179,11 @@ public sealed partial class SyncService : ObservableObject
             return;
         }
         var last = _service.Settings.LastSyncAt;
+        if (IsAgentMode)
+        {
+            StatusText = Strings.ServerViaAgent(last?.ToLocalTime());
+            return;
+        }
         var device = _service.Devices.Where(d => d.IsActive && d.LastSeenAt is not null).MaxBy(d => d.LastSeenAt);
         OnPropertyChanged(nameof(Route));
         StatusText = Strings.ServerStatus(Route, last?.ToLocalTime(), device?.Name, device?.LastSeenAt?.ToLocalTime());

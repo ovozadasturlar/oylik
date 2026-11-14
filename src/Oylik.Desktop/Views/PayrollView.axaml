@@ -57,15 +57,22 @@
                Width="220" Height="40" VerticalContentAlignment="Center" IsVisible="{Binding HasPeriod}" />
 
       <StackPanel Orientation="Horizontal" Spacing="8">
-        <Button Content="{r:T NewPeriod}" Command="{Binding NewPeriodCommand}" Height="40" />
-        <Button Content="{r:T ImportExcel}" Command="{Binding ImportCommand}" Height="40" />
+        <!-- Bosqich 1: tahrir tugmalari faqat tahrir ruxsati bo'lsa (Rahbar — faqat ko'rish) -->
+        <Button Content="{r:T NewPeriod}" Command="{Binding NewPeriodCommand}" Height="40" IsVisible="{Binding Main.CanEdit}" />
+        <Button Content="{r:T ImportExcel}" Command="{Binding ImportCommand}" Height="40" IsVisible="{Binding Main.CanEdit}" />
         <Button Content="{r:T ExportExcel}" Command="{Binding ExportCommand}" Height="40" IsVisible="{Binding HasPeriod}" />
         <!-- 5.11: barcha xodimlar (joriy tarmoq filtri) — bitta PDF + umumiy vedomost -->
         <Button Content="{r:T Payslips}" Command="{Binding ShowPayslipsCommand}" Height="40" IsVisible="{Binding HasPeriod}" ToolTip.Tip="{r:T PayslipsTip}" />
-        <Button Content="{r:T CopyAll}" Command="{Binding CopyAllAttendanceCommand}" Height="40" IsVisible="{Binding HasAttendance}" />
+        <Button Content="{r:T CopyAll}" Command="{Binding CopyAllAttendanceCommand}" Height="40">
+          <Button.IsVisible><MultiBinding Converter="{x:Static BoolConverters.And}"><Binding Path="HasAttendance" /><Binding Path="Main.CanEdit" /></MultiBinding></Button.IsVisible>
+        </Button>
         <Button Content="{r:T ClosePeriod}" Command="{Binding ClosePeriodCommand}" Height="40"
-                Classes="Primary" Theme="{DynamicResource SolidButton}" IsVisible="{Binding IsOpen}" />
-        <Button Content="{r:T ReopenPeriod}" Command="{Binding ReopenCommand}" Height="40" IsVisible="{Binding IsClosed}" />
+                Classes="Primary" Theme="{DynamicResource SolidButton}">
+          <Button.IsVisible><MultiBinding Converter="{x:Static BoolConverters.And}"><Binding Path="IsOpen" /><Binding Path="Main.CanEdit" /></MultiBinding></Button.IsVisible>
+        </Button>
+        <Button Content="{r:T ReopenPeriod}" Command="{Binding ReopenCommand}" Height="40">
+          <Button.IsVisible><MultiBinding Converter="{x:Static BoolConverters.And}"><Binding Path="IsClosed" /><Binding Path="Main.CanEdit" /></MultiBinding></Button.IsVisible>
+        </Button>
       </StackPanel>
     </WrapPanel>
 
@@ -73,7 +80,7 @@
     <Border DockPanel.Dock="Top" Classes="card" Padding="32" IsVisible="{Binding HasNoPeriod}">
       <StackPanel Spacing="12" HorizontalAlignment="Center">
         <TextBlock Text="{r:T NoPeriods}" FontSize="16" HorizontalAlignment="Center" />
-        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" IsVisible="{Binding Main.CanEdit}">
           <Button Content="{r:T ImportExcel}" Command="{Binding ImportCommand}" Classes="Primary" Theme="{DynamicResource SolidButton}" />
           <Button Content="{r:T NewPeriod}" Command="{Binding NewPeriodCommand}" />
         </StackPanel>
@@ -115,7 +122,9 @@
 
     <!-- Pastki qism: yangi xodim + klaviatura -->
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="16" Margin="0,10,0,0" IsVisible="{Binding HasPeriod}">
-      <Button Content="{r:T NewEmployee}" Command="{Binding NewEmployeeCommand}" IsVisible="{Binding IsOpen}" />
+      <Button Content="{r:T NewEmployee}" Command="{Binding NewEmployeeCommand}">
+        <Button.IsVisible><MultiBinding Converter="{x:Static BoolConverters.And}"><Binding Path="IsOpen" /><Binding Path="Main.CanEdit" /></MultiBinding></Button.IsVisible>
+      </Button>
       <TextBlock Text="{r:T KeyboardHint}" Classes="muted" VerticalAlignment="Center" />
     </StackPanel>
 
@@ -138,7 +147,7 @@
                   ItemsSource="{Binding Rows}"
                   ContextMenu="{StaticResource RowMenu}"
                   SelectedItem="{Binding SelectedRow}"
-                  IsReadOnly="{Binding IsClosed}"
+                  IsReadOnly="{Binding IsGridReadOnly}"
                   AutoGenerateColumns="False"
                   CanUserSortColumns="False"
                   CanUserReorderColumns="False"
@@ -187,6 +196,17 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
             <DataGridTextColumn Header="{x:Static r:Strings.ColRemainder}" Binding="{Binding RemainderText}" IsReadOnly="True" Width="140" CellStyleClasses="num computed remainder" />
+            <DataGridTemplateColumn Width="44" IsReadOnly="True">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PayrollRowViewModel">
+                  <Button Classes="link" Padding="4" HorizontalAlignment="Center" Command="{Binding EnrollFaceCommand}"
+                          IsVisible="{Binding TerminalEnabled}" ToolTip.Tip="{Binding FaceTip}">
+                    <PathIcon Width="15" Height="15" Foreground="{Binding FaceBrush}"
+                              Data="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                  </Button>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
           </DataGrid.Columns>
         </DataGrid>
       </DockPanel>

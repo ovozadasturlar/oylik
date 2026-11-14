@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Oylik.Core.Domain;
 using Oylik.Desktop.Resources;
+using Oylik.Desktop.Services;
 
 namespace Oylik.Desktop.ViewModels;
 
@@ -43,6 +44,8 @@ public sealed partial class PayrollViewModel
     [RelayCommand]
     private async Task CopyAttendance(PayrollRowViewModel? row)
     {
+        if (!Main.Demand(Access.Edit))
+            return;
         if (row?.Attendance is not { } summary || Period is not { } period)
             return;
         if (period.IsClosed)
@@ -63,6 +66,8 @@ public sealed partial class PayrollViewModel
     [RelayCommand(CanExecute = nameof(CanCopyAll))]
     private async Task CopyAllAttendance()
     {
+        if (!Main.Demand(Access.Edit))
+            return;
         if (Period is not { IsClosed: false } period)
             return;
         var rows = Rows.Where(r => r.CanCopyAttendance).ToList();

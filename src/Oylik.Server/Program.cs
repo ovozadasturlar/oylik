@@ -31,6 +31,10 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy(Endpoints.PairRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
         http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = pairPermits, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+    // Bosqich 3: ulanish kodi ham xuddi shunday cheklanadi (alohida hisob — telefon bog'lash urinishlari bilan aralashmaydi).
+    o.AddPolicy(Endpoints.JoinRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = pairPermits, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
 });
 
 // Caddy / Cloudflare orqasida haqiqiy IP.

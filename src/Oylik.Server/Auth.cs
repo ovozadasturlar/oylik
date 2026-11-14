@@ -51,9 +51,10 @@ public sealed class AuthFilter(CallerKind allowed) : IEndpointFilter
         if (allowed.HasFlag(CallerKind.Desktop) && http.Request.Headers[Api.ApiKeyHeader].ToString() is { Length: > 0 } key)
         {
             var hash = Secrets.Hash(key);
-            var installation = await db.Installations.AsNoTracking().FirstOrDefaultAsync(i => i.ApiKeyHash == hash);
-            if (installation is not null)
-                caller = new Caller(installation.Id, null);
+            // Bosqich 3: kalitlar alohida jadvalda (o'rnatmaga 1:ko'p — har mashina o'z kaliti).
+            var apiKey = await db.ApiKeys.AsNoTracking().FirstOrDefaultAsync(k => k.KeyHash == hash);
+            if (apiKey is not null)
+                caller = new Caller(apiKey.InstallationId, null);
         }
         else if (allowed.HasFlag(CallerKind.Device)
                  && http.Request.Headers.Authorization.ToString() is { } auth

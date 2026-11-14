@@ -1,6 +1,7 @@
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Oylik.Core.Domain;
 using Oylik.Desktop.Resources;
 using Oylik.Desktop.Views;
@@ -14,10 +15,23 @@ public sealed partial class PayrollRowViewModel(PayrollViewModel parent, Payroll
     private static readonly IBrush Ink = Palette.Get("InkBrush");
     private static readonly IBrush Manual = Palette.Get("ManualBrush");
     private static readonly IBrush Negative = Palette.Get("NegativeBrush");
+    private static readonly IBrush Faced = Palette.Get("SuccessBrush");
+    private static readonly IBrush NoFace = Palette.Get("FaintBrush");
 
     public PayrollLine Line { get; } = line;
     public Employee Employee { get; } = employee;
     public PayrollPeriod Period { get; } = period;
+
+    /// <summary>Terminal yoqilgan bo'lsa — qatorda «yuz qo'shish» tugmasi ko'rinadi.</summary>
+    public bool TerminalEnabled => parent.Main.FaceTerminal.IsEnabled;
+
+    /// <summary>Terminalda shu xodimning yuzi bormi — ikona rangi (yashil/kulrang) va maslahat shunga qarab.</summary>
+    public bool HasFace => Employee.TabelNo > 0 && parent.Main.FaceTerminal.FacedTabels.Contains(Employee.TabelNo);
+    public IBrush FaceBrush => HasFace ? Faced : NoFace;
+    public string FaceTip => HasFace ? Strings.TerminalFaceHas : Strings.TerminalEnrollFace;
+
+    [RelayCommand]
+    private Task EnrollFace() => FaceEnroll.RunAsync(parent.Main, Employee);
 
     [ObservableProperty] private int _no;
 

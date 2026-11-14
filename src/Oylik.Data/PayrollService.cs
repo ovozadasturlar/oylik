@@ -19,6 +19,18 @@ public sealed partial class PayrollService : IDisposable
     {
     }
 
+    /// <summary>
+    /// Bosqich 2: fon agenti uchun — faqat davomat yozuvchisi (<paramref name="attendanceOnly"/> = true): ish haqi qatorlari
+    /// qayta hisoblanmaydi va yozilmaydi (ularning egasi — desktop), xotiraga kamroq voqea yuklanadi.
+    /// </summary>
+    public PayrollService(AppPaths paths, TimeProvider clock, bool attendanceOnly) : this(paths, clock)
+    {
+        AttendanceOnly = attendanceOnly;
+    }
+
+    /// <summary>Agent rejimi: davomat/qurilma/sinxron kursorlari yoziladi, Oylik qatorlariga tegilmaydi.</summary>
+    public bool AttendanceOnly { get; }
+
     internal PayrollService(OylikDbContext db, BackupService backup, TimeProvider clock)
     {
         _db = db;
@@ -54,9 +66,13 @@ public sealed partial class PayrollService : IDisposable
         await LoadAttendanceAsync();
         await LoadBranchesAsync();
         await LoadSchedulesAsync();
+        await LoadRolePinsAsync();
         foreach (var open in _db.Periods.Local.Where(p => !p.IsClosed).ToList())
             await EnsureEventsLoadedAsync(open.Key);
+        if (!AttendanceOnly)
+            await EnsureActiveEmployeesInOpenPeriodsAsync(); // faol xodim ochiq oyda bo'lishi kerak (Xodimlar bo'limida qo'shilganlar ham)
         RecalculateOpenSchedules(); // H10: ochiq oy — joriy davomat va sozlamalar bilan
+        _storeCheckedAt = _clock.GetUtcNow();
         if (_db.ChangeTracker.HasChanges())
             await _db.SaveChangesAsync();
     }
@@ -67,6 +83,28 @@ public sealed partial class PayrollService : IDisposable
         _db.Settings.Add(settings);
         await _db.SaveChangesAsync();
         return settings;
+    }
+
+    /// <summary>
+    /// Har bir ochiq oyda barcha faol xodim uchun qator borligini ta'minlaydi (yo'qlarini qo'shadi). Oy ochilgandan keyin
+    /// "Xodimlar" bo'limida qo'shilgan yoki qayta faollashtirilgan xodimlar ham ochiq Oylikda ko'rinadi.
+    /// </summary>
+    private async Task EnsureActiveEmployeesInOpenPeriodsAsync()
+    {
+        var active = _db.Employees.Local.Where(e => e.IsActive).ToList();
+        if (active.Count == 0)
+            return;
+        var engine = NewEngine();
+        var added = false;
+        foreach (var period in _db.Periods.Local.Where(p => !p.IsClosed).ToList())
+            foreach (var emp in active)
+                if (period.FindLine(emp.Id) is null)
+                {
+                    engine.AddLine(period, emp);
+                    added = true;
+                }
+        if (added)
+            await SaveAsync(engine);
     }
 
     private PayrollEngine NewEngine() => new(Settings, _clock);
@@ -227,6 +265,21 @@ public sealed partial class PayrollService : IDisposable
         return employee;
     });
 
+    /// <summary>
+    /// "Xodimlar" bo'limidagi "+Yangi xodim": xodim yaratiladi va BARCHA ochiq oylarga qator qo'shiladi (kun 0 dan),
+    /// shunda joriy oy Oylik ro'yxatida ham darhol ko'rinadi. <see cref="CreateEmployeeAsync"/>dan farqi — ochiq oy qatorlari.
+    /// </summary>
+    public Task<Employee> CreateEmployeeInRosterAsync(string fullName, long salary, long? dailyRate, string? note, Guid? branchId = null) => RunAsync(e =>
+    {
+        var employee = e.CreateEmployee(fullName, salary, dailyRate, note);
+        employee.BranchId = FindBranch(branchId)?.Id;
+        employee.TabelNo = NextTabelNo();
+        _db.Employees.Add(employee);
+        foreach (var period in _db.Periods.Local.Where(p => !p.IsClosed).ToList())
+            e.AddLine(period, employee);
+        return employee;
+    });
+
     public Task UpdateEmployeeAsync(Employee employee, string fullName, string? note, long salary, long dailyRate, bool dailyManual, bool active) =>
         RunAsync(e =>
         {
@@ -236,6 +289,7 @@ public sealed partial class PayrollService : IDisposable
             {
                 e.Log("Employee", employee.Id, "Note", employee.Note, trimmedNote);
                 employee.Note = trimmedNote;
+                employee.UpdatedAt = _clock.GetUtcNow(); // Bosqich 3: pull shu sinxron oynasidagi lokal tahrirni bosib ketmasin
             }
             e.SetEmployeeSalary(employee, salary);
             if (dailyManual)
@@ -247,12 +301,23 @@ public sealed partial class PayrollService : IDisposable
 
     public bool HasHistory(Employee employee) => _db.Lines.Local.Any(l => l.EmployeeId == employee.Id);
 
-    /// <summary>5.4: o'chirish — faqat birorta oyda qatori bo'lmasa.</summary>
+    /// <summary>
+    /// 5.4: o'chirish — faqat birorta oyda qatori bo'lmasa. Bosqich 3: iz (tombstone) qoladi — keyingi sinxronda serverga
+    /// IsActive=false bo'lib boradi (server upsert-only; aks holda boshqa zavodda xodim "tirilib" qoladi).
+    /// </summary>
     public Task DeleteEmployeeAsync(Employee employee) => RunAsync(e =>
     {
         if (HasHistory(employee))
             throw new DomainException(DomainError.EmployeeHasHistory, "Xodimning oylarda qatori bor — faqat nofaol qilish mumkin.");
         e.Log("Employee", employee.Id, "Deleted", employee.FullName, null);
+        if (_db.EmployeeTombstones.Find(employee.Id) is null)
+            _db.EmployeeTombstones.Add(new EmployeeTombstone
+            {
+                Id = employee.Id,
+                FullName = employee.FullName,
+                TabelNo = employee.TabelNo,
+                DeletedAt = _clock.GetUtcNow(),
+            });
         _db.Employees.Remove(employee);
     });
 
@@ -349,8 +414,21 @@ public sealed partial class PayrollService : IDisposable
         return new ImportResult(created, linked, lines);
     }
 
-    /// <summary>H13.10: doimiy tabel raqami — yaratilish tartibida.</summary>
-    private int NextTabelNo() => _db.Employees.Local.Select(x => x.TabelNo).DefaultIfEmpty(0).Max() + 1;
+    /// <summary>Bosqich 3: bitta mashina tabel diapazoni kengligi (server join'da 1000001, 2000001, ... beradi).</summary>
+    public const int TabelRangeSize = 1_000_000;
+
+    /// <summary>
+    /// H13.10: doimiy tabel raqami — yaratilish tartibida. Bosqich 3: faqat o'z diapazonidan
+    /// ([TabelBase .. TabelBase+999999]; TabelBase=0 — 1..999999): boshqa zavoddan pull qilingan raqamlar hisobga olinmaydi,
+    /// shunda ikki zavod mustaqil (oflayn ham) xodim qo'shsa to'qnashmaydi.
+    /// </summary>
+    private int NextTabelNo()
+    {
+        var start = Math.Max(Settings.TabelBase, 1);
+        var end = Settings.TabelBase <= 1 ? TabelRangeSize - 1 : Settings.TabelBase + TabelRangeSize - 1;
+        var max = _db.Employees.Local.Select(x => x.TabelNo).Where(t => t >= start && t <= end).DefaultIfEmpty(start - 1).Max();
+        return max + 1;
+    }
 
     public void Dispose() => _db.Dispose();
 }

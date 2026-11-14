@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -8,6 +9,7 @@ namespace Oylik.Data;
 public sealed class OylikDbContext(DbContextOptions<OylikDbContext> options) : DbContext(options)
 {
     public DbSet<Employee> Employees => Set<Employee>();
+    public DbSet<EmployeeTombstone> EmployeeTombstones => Set<EmployeeTombstone>();
     public DbSet<PayrollPeriod> Periods => Set<PayrollPeriod>();
     public DbSet<PayrollLine> Lines => Set<PayrollLine>();
     public DbSet<Advance> Advances => Set<Advance>();
@@ -20,10 +22,12 @@ public sealed class OylikDbContext(DbContextOptions<OylikDbContext> options) : D
     public DbSet<EmployeeScheduleAssignment> ScheduleAssignments => Set<EmployeeScheduleAssignment>();
     public DbSet<ScheduleOverride> ScheduleOverrides => Set<ScheduleOverride>();
     public DbSet<ExcusedDay> ExcusedDays => Set<ExcusedDay>();
+    public DbSet<RolePin> RolePins => Set<RolePin>();
 
     public static DbContextOptions<OylikDbContext> CreateOptions(string dbPath) =>
         new DbContextOptionsBuilder<OylikDbContext>()
-            .UseSqlite($"Data Source={dbPath}")
+            // Bosqich 2: agent + desktop bitta bazada (WAL) — qulf bo'lsa 30 s gacha qayta urinadi (busy timeout).
+            .UseSqlite(new SqliteConnectionStringBuilder { DataSource = dbPath, DefaultTimeout = 30 }.ToString())
             .Options;
 
     protected override void ConfigureConventions(ModelConfigurationBuilder builder)
@@ -35,6 +39,12 @@ public sealed class OylikDbContext(DbContextOptions<OylikDbContext> options) : D
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        b.Entity<EmployeeTombstone>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.FullName).HasMaxLength(100).IsRequired();
+        });
+
         b.Entity<Employee>(e =>
         {
             e.Property(x => x.Id).ValueGeneratedNever();
@@ -44,6 +54,7 @@ public sealed class OylikDbContext(DbContextOptions<OylikDbContext> options) : D
             e.HasIndex(x => x.BranchId);
             e.HasIndex(x => x.TabelNo);
             e.Property(x => x.OvertimeValue).HasPrecision(18, 2);
+            e.Property(x => x.SyncHash).HasMaxLength(32);
         });
 
         b.Entity<PayrollPeriod>(e =>
@@ -160,6 +171,13 @@ public sealed class OylikDbContext(DbContextOptions<OylikDbContext> options) : D
             e.Property(x => x.Id).ValueGeneratedNever();
             e.Property(x => x.Note).HasMaxLength(200);
             e.HasIndex(x => new { x.EmployeeId, x.Date });
+        });
+
+        // Bosqich 1: rol PINlari — faqat xesh; lokal (sinxronlanmaydi).
+        b.Entity<RolePin>(e =>
+        {
+            e.HasKey(x => x.Role);
+            e.Property(x => x.Role).ValueGeneratedNever();
         });
     }
 

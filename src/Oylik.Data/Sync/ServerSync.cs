@@ -17,22 +17,48 @@ public sealed class ServerSync(PayrollService service, Func<Func<Task>, Task>? r
     /// <summary>Xodimlar ro'yxati serverga qayta jo'natilishi kerak.</summary>
     public bool EmployeesDirty { get; set; } = true;
 
+    /// <summary>
+    /// Bosqich 3: pull'dan yangi/o'zgargan xodimlar — shu zavod terminaliga yozish uchun (best-effort; xatosi sinxronni
+    /// to'xtatmasligi kerak — chaqiruvchi o'zi ushlaydi).
+    /// </summary>
+    public Func<EmployeePullResult, Task>? EmployeesPulled { get; set; }
+
     /// <summary>Bir marta to'liq sinxronizatsiya. Tarmoq xatolari chaqiruvchiga uzatiladi; jo'natilmaganlar keyingi safar.</summary>
     public async Task RunAsync(ServerClient client)
     {
-        // 1. Xodimlar (voqealardan oldin — server noma'lum xodim voqeasini rad etadi).
-        if (EmployeesDirty)
+        // 1. Xodimlar (voqealardan oldin — server noma'lum xodim voqeasini rad etadi). Bosqich 3: faqat serverga yetmagan
+        //    lokal o'zgarishlar (SyncHash) — butun ro'yxat emas, aks holda eskirgan zavod boshqasining o'zgarishini bosib
+        //    ketadi; o'chirilganlar ham (tombstone → IsActive=false), qabul qilingach tozalanadi.
+        EmployeesDirty = false;
+        var pendingEmployees = _service.EmployeesPendingPush();
+        var tombstones = await _service.GetEmployeeTombstonesAsync();
+        if (pendingEmployees.Count > 0 || tombstones.Count > 0)
         {
-            EmployeesDirty = false;
             try
             {
-                await client.PutEmployeesAsync(_service.Employees, _service.MaxShiftMinutesFor);
+                await client.PutEmployeesAsync(pendingEmployees.Select(p => p.Employee), _service.MaxShiftMinutesFor, tombstones);
             }
             catch
             {
                 EmployeesDirty = true;
                 throw;
             }
+            await _runDb(async () =>
+            {
+                await _service.MarkEmployeesPushedAsync(pendingEmployees.Select(p => (p.Employee.Id, p.Hash)).ToList());
+                await _service.RemoveEmployeeTombstonesAsync(tombstones.Select(t => t.Id).ToList());
+            });
+        }
+
+        // 1b. Bosqich 3: boshqa zavod(lar) qo'shgan/o'zgartirgan xodimlar (kursor — server UpdatedAt, shu jumladan;
+        //     qayta kelgan teng qiymatlar hech narsa yozmaydi).
+        var remote = await client.GetEmployeesAsync(_service.Settings.EmployeesSyncedAt);
+        if (remote.Count > 0)
+        {
+            var pulled = EmployeePullResult.None;
+            await _runDb(async () => pulled = await _service.ApplyServerEmployeesAsync(remote.Select(ServerClient.FromServer).ToList()));
+            if (pulled.ForTerminal.Any() && EmployeesPulled is { } onPulled)
+                await onPulled(pulled);
         }
 
         // 2. Desktopda qo'lda qo'shilgan / bekor qilingan voqealar.

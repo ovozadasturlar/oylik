@@ -81,6 +81,8 @@ public sealed partial class PayrollService
     /// <summary>H10: ochiq oylardagi Schedule qatorlari jonli qayta hisoblanadi; yopiq oylar — hech qachon.</summary>
     private void RecalculateOpenSchedules()
     {
+        if (AttendanceOnly)
+            return; // agent: Oylik qatorlari desktopniki
         var lines = _db.Periods.Local.Where(p => !p.IsClosed)
             .SelectMany(p => p.Lines.Where(l => l.PayMode == PayMode.Schedule).Select(l => (Period: p, Line: l)))
             .ToList();

@@ -18,6 +18,12 @@ public sealed class Employee
     /// <summary>H13.10: doimiy tabel raqami (yaratilish tartibida) — hujjat raqami OY-YYYY-MM-&lt;TabelNo&gt;.</summary>
     public int TabelNo { get; set; }
 
+    /// <summary>
+    /// Bosqich 3: server bilan oxirgi kelishilgan holat xeshi (ism/izoh/faollik/tabel/smena chegarasi). Joriy xesh farq qilsa —
+    /// lokal o'zgarish hali serverga yetmagan: faqat shular push qilinadi va pull ularni bosib ketmaydi. null — hech qachon.
+    /// </summary>
+    public string? SyncHash { get; set; }
+
     /// <summary>4.3: hisob usuli; ochiq oy qatori bilan birga o'zgaradi (R9 kabi).</summary>
     public PayMode PayMode { get; set; } = PayMode.Daily;
 
@@ -200,6 +206,40 @@ public sealed class AppSettings
     /// <summary>2-bosqich: serverdan tortilgan oxirgi voqea Seq'i (kursor).</summary>
     public long LastEventSeq { get; set; }
     public DateTimeOffset? LastSyncAt { get; set; }
+
+    /// <summary>
+    /// Bosqich 3: xodimlar pull kursori — serverdan olingan oxirgi xodim UpdatedAt (server vaqti). null — hammasi.
+    /// </summary>
+    public DateTimeOffset? EmployeesSyncedAt { get; set; }
+
+    /// <summary>
+    /// Bosqich 3: shu mashinaning tabel diapazoni boshi (join paytida server beradi: 1000001, 2000001, ...).
+    /// 0 — asosiy mashina / ulanmagan: tabel 1 dan. Yangi xodim tabeli shu diapazondan beriladi (zavodlar to'qnashmasin).
+    /// </summary>
+    public int TabelBase { get; set; }
+
+    // ---------- Yuz terminali (Hikvision DS-K1Txxx, 2.3) ----------
+
+    /// <summary>Terminal manzili, masalan http://192.168.1.2. null — terminal ishlatilmaydi (telefon ilovasi davomat manbai).</summary>
+    public string? TerminalUrl { get; set; }
+
+    /// <summary>Terminal admin paroli (DPAPI bilan shifrlangan, ApiKey kabi). Login doim "admin".</summary>
+    public string? TerminalPassword { get; set; }
+
+    /// <summary>Terminaldan davomat o'qish yoqilganmi.</summary>
+    public bool TerminalEnabled { get; set; }
+
+    /// <summary>Terminal seriya raqami — IP (DHCP) o'zgarsa, tarmoqdan shu seriya bo'yicha qurilmani topib, manzilni avtomat yangilash uchun.</summary>
+    public string? TerminalSerial { get; set; }
+
+    /// <summary>Terminaldan o'qilgan oxirgi voqea SerialNo'si (kursor — idempotent o'qish).</summary>
+    public long TerminalLastSerial { get; set; }
+
+    /// <summary>
+    /// true — xodim terminal ekranida «Kelish»/«Ketish»ni o'zi tanlaydi (manual rejim); false (default) — server o'zi
+    /// hal qiladi: kunning 1-tanishi Kelish, keyingisi Ketish (toggle).
+    /// </summary>
+    public bool TerminalRequireConfirm { get; set; }
 
     /// <summary>H5: kechikishga ruxsat, daqiqa (0–180).</summary>
     public int LateGraceMinutes { get; set; } = 5;

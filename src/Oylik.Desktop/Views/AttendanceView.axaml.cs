@@ -23,6 +23,11 @@ public partial class AttendanceView : UserControl
         if (DataContext is not AttendanceViewModel vm || sender is not Control control || control.DataContext is not AttendanceCellViewModel cell)
             return;
         vm.SelectCell(cell);
+        if (!vm.Main.CanEdit)
+        {
+            e.Handled = true; // Bosqich 1: jadval o'zgarishi (dam/sababli) — faqat tahrir ruxsati bilan
+            return;
+        }
         MenuItem Item(string header, Func<Task> action)
         {
             var item = new MenuItem { Header = header };

@@ -5,6 +5,12 @@
              xmlns:v="using:Oylik.Desktop.Views"
              x:Class="Oylik.Desktop.Views.EmployeesView"
              x:DataType="vm:EmployeesViewModel">
+  <UserControl.Styles>
+    <!-- Bosqich 1: tahrir ruxsati yo'q (Rahbar, Qorovul) — katak ichidagi tanlov/belgilar o'chiq -->
+    <Style Selector="DataGrid.readonly ComboBox.cell, DataGrid.readonly CheckBox, DataGrid.readonly Button.schedule">
+      <Setter Property="IsEnabled" Value="False" />
+    </Style>
+  </UserControl.Styles>
   <!-- 5.4: Excel kabi — tahrir jadvalning o'zida (Oylik jadvali bilan bir xil xulq) -->
   <DockPanel Margin="24,20,24,16">
     <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,16" ItemSpacing="12" LineSpacing="10">
@@ -22,12 +28,12 @@
     </WrapPanel>
 
     <DockPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
-      <Button Content="{r:T AddEmployee}" Command="{Binding NewEmployeeCommand}" />
+      <Button Content="{r:T AddEmployee}" Command="{Binding NewEmployeeCommand}" IsVisible="{Binding Main.CanEdit}" />
       <TextBlock Text="{r:T EmployeesKeyboardHint}" Classes="muted" VerticalAlignment="Center" Margin="16,0,0,0" TextTrimming="CharacterEllipsis" />
     </DockPanel>
 
     <Border Classes="card" ClipToBounds="True">
-      <DataGrid x:Name="Grid" Classes="payroll employees"
+      <DataGrid x:Name="Grid" Classes="payroll employees" Classes.readonly="{Binding !Main.CanEdit}" IsReadOnly="{Binding !Main.CanEdit}"
                 ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}"
                 AutoGenerateColumns="False" CanUserSortColumns="False" CanUserReorderColumns="False"
                 CanUserResizeColumns="True" SelectionMode="Single" GridLinesVisibility="All"
@@ -50,10 +56,11 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
           <DataGridTextColumn Header="{r:T Note}" Binding="{Binding NoteText, UpdateSourceTrigger=LostFocus}" Width="120" x:DataType="vm:EmployeeRowViewModel" />
-          <DataGridTextColumn Header="{r:T FieldSalary}" Binding="{Binding SalaryText, UpdateSourceTrigger=LostFocus}" Width="130" CellStyleClasses="num" x:DataType="vm:EmployeeRowViewModel" />
-          <DataGridTextColumn Header="{r:T FieldDaily}" Binding="{Binding DailyText, UpdateSourceTrigger=LostFocus}" Width="130" CellStyleClasses="num daily" x:DataType="vm:EmployeeRowViewModel" />
+          <!-- Bosqich 1: Tag="salary" — Qorovul'da yashirin (EmployeesView.axaml.cs) -->
+          <DataGridTextColumn Tag="salary" Header="{r:T FieldSalary}" Binding="{Binding SalaryText, UpdateSourceTrigger=LostFocus}" Width="130" CellStyleClasses="num" x:DataType="vm:EmployeeRowViewModel" />
+          <DataGridTextColumn Tag="salary" Header="{r:T FieldDaily}" Binding="{Binding DailyText, UpdateSourceTrigger=LostFocus}" Width="130" CellStyleClasses="num daily" x:DataType="vm:EmployeeRowViewModel" />
           <!-- 4.3: hisob usuli va jadval (5.10) -->
-          <DataGridTemplateColumn Header="{r:T ColPayMode}" Width="140">
+          <DataGridTemplateColumn Tag="salary" Header="{r:T ColPayMode}" Width="140">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:EmployeeRowViewModel">
                 <ComboBox Classes="cell" ItemsSource="{Binding PayModeChoices}" SelectedIndex="{Binding PayModeIndex}" />
@@ -63,7 +70,7 @@
           <DataGridTemplateColumn Header="{r:T ColSchedule}" Width="190">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:EmployeeRowViewModel">
-                <Button Classes="link" Margin="12,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                <Button Classes="link schedule" Margin="12,0" HorizontalAlignment="Left" VerticalAlignment="Center"
                         Command="{Binding OpenScheduleCommand}" ToolTip.Tip="{r:T ColSchedule}">
                   <TextBlock Text="{Binding ScheduleText}" TextTrimming="CharacterEllipsis"
                              Foreground="{DynamicResource ManualBrush}" Opacity="{Binding IsSchedule, Converter={x:Static v:Converters.ScheduleOpacity}}" />
@@ -79,14 +86,22 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
           <!-- Kam ishlatiladigan amallar: Kunlikni avtomatik qilish (qo'lda bo'lsa), o'chirish (tarixi bo'lmasa) -->
-          <DataGridTemplateColumn Width="90" IsReadOnly="True">
+          <DataGridTemplateColumn Width="120" IsReadOnly="True">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:EmployeeRowViewModel">
                 <StackPanel Orientation="Horizontal" Spacing="12" Margin="12,0" VerticalAlignment="Center">
-                  <Button Classes="link" Content="↺" FontSize="15" Foreground="{DynamicResource ManualBrush}"
-                          Command="{Binding ResetDailyCommand}" IsVisible="{Binding IsManualDaily}" ToolTip.Tip="{r:T ResetToAuto}" />
-                  <Button Classes="link" Content="✕" Foreground="{DynamicResource NegativeBrush}"
-                          Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" ToolTip.Tip="{r:T DeleteEmployeeTip}" />
+                  <Button Classes="link" Padding="4" Command="{Binding EnrollFaceCommand}"
+                          IsVisible="{Binding TerminalEnabled}" ToolTip.Tip="{Binding FaceTip}">
+                    <PathIcon Width="15" Height="15" Foreground="{Binding FaceBrush}"
+                              Data="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                  </Button>
+                  <StackPanel Orientation="Horizontal" Spacing="12"
+                              IsVisible="{Binding $parent[DataGrid].((vm:EmployeesViewModel)DataContext).Main.CanEdit}">
+                    <Button Classes="link" Content="↺" FontSize="15" Foreground="{DynamicResource ManualBrush}"
+                            Command="{Binding ResetDailyCommand}" IsVisible="{Binding IsManualDaily}" ToolTip.Tip="{r:T ResetToAuto}" />
+                    <Button Classes="link" Content="✕" Foreground="{DynamicResource NegativeBrush}"
+                            Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" ToolTip.Tip="{r:T DeleteEmployeeTip}" />
+                  </StackPanel>
                 </StackPanel>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>

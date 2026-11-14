@@ -1,9 +1,12 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Oylik.Desktop.Services;
+namespace Oylik.Data;
 
-/// <summary>API kalit bazada DPAPI (CurrentUser) bilan shifrlangan holda saqlanadi.</summary>
+/// <summary>
+/// Sirlar (server API kaliti, terminal paroli) bazada DPAPI (CurrentUser) bilan shifrlangan holda saqlanadi.
+/// Desktop va agent bir Windows foydalanuvchisi nomidan ishlashi kerak — aks holda ochilmaydi (null).
+/// </summary>
 public static class SecretProtector
 {
     private const string Prefix = "dpapi:";

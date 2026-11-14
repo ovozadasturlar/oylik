@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using Oylik.Core.Domain;
 using Oylik.Data;
 using Oylik.Desktop.Resources;
+using Oylik.Desktop.Services;
 
 using Oylik.Desktop.Views;
 
@@ -106,7 +107,7 @@ public sealed class AttendanceRowViewModel
     public string PlanText => Schedule is { } s ? Strings.PlanActual(s.WorkedMinutes, s.PlannedMinutes) : "";
 }
 
-public sealed class DayEventViewModel(AttendanceEvent e, string time, string source, Func<AttendanceEvent, Task> voidAction)
+public sealed class DayEventViewModel(AttendanceEvent e, string time, string source, Func<AttendanceEvent, Task> voidAction, bool canEdit = true)
 {
     public AttendanceEvent Event { get; } = e;
     public string Time { get; } = time;
@@ -116,7 +117,7 @@ public sealed class DayEventViewModel(AttendanceEvent e, string time, string sou
     public string? Note => Event.IsVoided ? Strings.VoidedBecause(Event.VoidReason) : Event.Note;
     public bool HasNote => !string.IsNullOrEmpty(Note);
     public bool IsVoided => Event.IsVoided;
-    public bool CanVoid => !Event.IsVoided;
+    public bool CanVoid => !Event.IsVoided && canEdit;
     public bool HasClockSkew => Event.HasClockSkew;
     public TextDecorationCollection? Decorations => Event.IsVoided ? TextDecorations.Strikethrough : null;
     public double Opacity => Event.IsVoided ? 0.55 : 1;
@@ -131,6 +132,9 @@ public sealed partial class IssueViewModel(AttendanceViewModel parent, Attendanc
     private DateTimeOffset Local => TimeZoneInfo.ConvertTime(Issue.Event.OccurredAt, zone);
 
     public bool IsOpenIn => Issue.Kind == AttendanceIssueKind.OpenNoOut;
+
+    /// <summary>Bosqich 1: tasdiqlash/bekor qilish faqat davomat ruxsati bo'lsa (Rahbar — faqat ko'rish).</summary>
+    public bool CanEdit => parent.Main.CanEditAttendance;
     public string Name => Employee.FullName;
     public string When => $"{Local:dd.MM} {(IsOpenIn ? Strings.EventIn : Strings.EventOut)} {Local:HH:mm}";
     public string Problem => IsOpenIn ? Strings.IssueOpenNoOut : Strings.IssueOrphanOut;
@@ -579,7 +583,7 @@ public sealed partial class AttendanceViewModel(MainWindowViewModel main) : Obse
             main.ShowError(Strings.ShiftTooLong((int)limit.TotalHours));
             return;
         }
-        if (await main.RunAsync(() => Service.AddManualEventAsync(item.Employee, type, at, Strings.ConfirmedNote)))
+        if (await main.RunAsync(() => Service.AddManualEventAsync(item.Employee, type, at, Strings.ConfirmedNote), Access.Attendance))
             await AfterChangeAsync();
     }
 
@@ -591,7 +595,7 @@ public sealed partial class AttendanceViewModel(MainWindowViewModel main) : Obse
         var reason = await main.Dialogs.PromptAsync(Strings.VoidTitle, Strings.VoidPrompt(what), Strings.VoidReasonWatermark);
         if (string.IsNullOrWhiteSpace(reason))
             return;
-        if (await main.RunAsync(() => Service.VoidEventAsync(e, reason)))
+        if (await main.RunAsync(() => Service.VoidEventAsync(e, reason), Access.Attendance))
             await AfterChangeAsync();
     }
 
@@ -642,7 +646,7 @@ public sealed partial class AttendanceViewModel(MainWindowViewModel main) : Obse
             var local = TimeZoneInfo.ConvertTime(e.OccurredAt, Zone);
             var time = DateOnly.FromDateTime(local.DateTime) == cell.Date ? local.ToString("HH:mm") : local.ToString("dd.MM HH:mm");
             var source = Service.FindDevice(e.DeviceId)?.Name ?? (e.IsManual ? Strings.ManualSource : Strings.UnknownDevice);
-            DayEvents.Add(new DayEventViewModel(e, time, source, VoidEventAsync));
+            DayEvents.Add(new DayEventViewModel(e, time, source, VoidEventAsync, main.CanEditAttendance));
         }
         OnPropertyChanged(nameof(HasNoDayEvents));
     }
@@ -678,7 +682,7 @@ public sealed partial class AttendanceViewModel(MainWindowViewModel main) : Obse
         var at = new DateTimeOffset(local, Zone.GetUtcOffset(local));
         var employee = _selected.Employee;
         var type = AddIsIn ? AttendanceEventType.In : AttendanceEventType.Out;
-        if (await main.RunAsync(() => Service.AddManualEventAsync(employee, type, at, AddNote)))
+        if (await main.RunAsync(() => Service.AddManualEventAsync(employee, type, at, AddNote), Access.Attendance))
         {
             IsAdding = false;
             await AfterChangeAsync();

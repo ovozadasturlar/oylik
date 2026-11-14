@@ -24,6 +24,31 @@ public sealed record RegisterInstallationResponse(Guid InstallationId, string Ap
 /// <summary>POST /api/installations/{id}/pairing-codes → 6 xonali kod, 10 daqiqa.</summary>
 public sealed record PairingCodeResponse(string Code, DateTimeOffset ExpiresAt);
 
+// ---------- Ko'p-zavod: mavjud o'rnatmaga ulanish (Bosqich 3) ----------
+
+/// <summary>
+/// POST /api/installations/{id}/join-codes (desktop, X-Api-Key) → 6 xonali ULANISH kodi, 10 daqiqa, bir martalik.
+/// Telefon bog'lash kodidan farqli (uni desktop ApiKey olishga ishlatib bo'lmaydi va aksincha).
+/// Ikkinchi zavod desktopi shu kod bilan o'sha o'rnatmaga ulanadi.
+/// </summary>
+public sealed record JoinCodeResponse(string Code, DateTimeOffset ExpiresAt);
+
+/// <summary>
+/// POST /api/installations/join (kalitsiz; kod bilan himoyalangan, urinishlar cheklangan). Ikkinchi mashina mavjud
+/// <paramref name="InstallationId"/> ga <paramref name="Code"/> orqali ulanadi va O'ZINING alohida ApiKey'ini oladi
+/// (bitta kalit ulashilmaydi — har mashina o'zinikini oladi, birini o'chirish ikkinchisiga ta'sir qilmaydi).
+/// Xatolar: 400 — kod/Id noto'g'ri, 409 — ishlatilgan, 410 — muddati o'tgan, 429 — urinishlar limiti.
+/// </summary>
+public sealed record JoinInstallationRequest(Guid InstallationId, string Code, string Name);
+
+/// <summary>
+/// POST /api/installations/join javobi. <paramref name="TabelBase"/> — bu mashina yangi xodim yaratganda tabel raqamlarini
+/// SHU qiymatdan boshlab beradi (lokal NextTabelNo = max(TabelBase, shu diapazondagi lokal max)+1). Server har ulanuvchi
+/// mashinaga bir-biriga xalal bermaydigan diapazon beradi (masalan asosiy 1.., 2-mashina 1000001.., 3-mashina 2000001..),
+/// shunda ikki zavod mustaqil (oflayn ham) xodim qo'shsa tabel to'qnashmaydi. Monoton — join sanagichi kamaymaydi.
+/// </summary>
+public sealed record JoinInstallationResponse(Guid InstallationId, string ApiKey, int TabelBase);
+
 /// <summary>
 /// Desktop ko'rsatadigan QR ichidagi JSON: {"server":"https://…","installationId":"…","code":"482913","localServer":"http://192.168.1.19:5000"}.
 /// <paramref name="Server"/> — har joydan ishlaydigan manzil (global URL; faqat LAN sozlangan bo'lsa — LAN manzili),
@@ -57,7 +82,9 @@ public sealed record DeviceDto(Guid Id, string Name, DateTimeOffset PairedAt, Da
 /// smena + 4 soat (sutkalik → 28 soat); null — <see cref="Api.DefaultMaxShift"/> (16 soat). Telefon "Ichkarida" holatini shunga qarab
 /// aniqlaydi. Pul ma'lumoti emas.
 /// </remarks>
-public sealed record EmployeeDto(Guid Id, string FullName, string? Note, bool IsActive, DateTimeOffset UpdatedAt, int? MaxShiftMinutes = null);
+/// <remarks><paramref name="TabelNo"/> (Bosqich 3) — doimiy tabel raqami; ko'p-zavodda terminal xodimni shu bo'yicha
+/// taniydi. Pull/push'da ko'chadi, shunda ikkala zavod terminali bir xil tabelni ishlatadi. null — eski/berilmagan.</remarks>
+public sealed record EmployeeDto(Guid Id, string FullName, string? Note, bool IsActive, DateTimeOffset UpdatedAt, int? MaxShiftMinutes = null, string? TabelNo = null);
 
 // ---------- Davomat ----------
 
@@ -128,6 +155,10 @@ public static class Api
     {
         public const string Installations = "/api/installations";
         public static string PairingCodes(Guid installationId) => $"/api/installations/{installationId}/pairing-codes";
+        /// <summary>Bosqich 3: POST (desktop, X-Api-Key) — ikkinchi mashina uchun ulanish kodi.</summary>
+        public static string JoinCodes(Guid installationId) => $"/api/installations/{installationId}/join-codes";
+        /// <summary>Bosqich 3: POST (kalitsiz, kod bilan) — mavjud o'rnatmaga ulanib ApiKey olish.</summary>
+        public const string JoinInstallation = "/api/installations/join";
         /// <summary>POST (telefon). Xatolar: 400 — kod noto'g'ri, 409 — kod allaqachon ishlatilgan, 410 — muddati o'tgan, 429 — urinishlar limiti.</summary>
         public const string PairDevice = "/api/devices/pair";
         public const string Devices = "/api/devices";

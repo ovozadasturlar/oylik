@@ -70,6 +70,7 @@ public sealed class DesktopSyncTests : IAsyncLifetime
         var (phone, deviceId) = await PairPhoneAsync();
         var employees = (await phone.GetFromJsonAsync<List<EmployeeDto>>(Api.Routes.Employees, Api.Json))!;
         employees.Select(e => e.FullName).Should().BeEquivalentTo("Олим ака (тест)", "Сардор");
+        employees.Select(e => e.TabelNo).Should().BeEquivalentTo([olim.TabelNo.ToString(), sardor.TabelNo.ToString()], "Bosqich 3: tabel raqami ham ko'chadi");
 
         // 10 ta Keldi/Ketdi oflayn yig'ilgan, internet qaytganda — ikki marta jo'natiladi (outbox takrori)
         var taps = new List<AttendanceEventDto>();

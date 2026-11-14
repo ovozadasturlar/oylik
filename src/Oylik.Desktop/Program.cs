@@ -22,6 +22,12 @@ internal static class Program
 
         try
         {
+            if (args is ["--terminal-probe", var url, var pass, ..])
+                return TerminalProbe.Run(url, pass).GetAwaiter().GetResult();
+            if (args is ["--face-probe", var furl, var fpass, var emp, var name, var mode, ..])
+                return TerminalProbe.Face(furl, fpass, emp, name, mode, args.Length > 6 ? args[6] : null).GetAwaiter().GetResult();
+            if (args is ["--discover-probe", var dserial, var dpass, ..])
+                return TerminalProbe.Discover(dserial, dpass).GetAwaiter().GetResult();
             Log.Information("Oylik ishga tushdi");
             return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }

@@ -171,7 +171,7 @@
                         </TextBlock>
                         <TextBlock Text="{Binding Problem}" FontSize="12" Foreground="{DynamicResource WarnTitle}" TextWrapping="Wrap" />
                       </StackPanel>
-                      <StackPanel Orientation="Horizontal" Spacing="6">
+                      <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding CanEdit}">
                         <TextBlock Text="{Binding InputLabel}" FontSize="12" Foreground="{DynamicResource SubtleTextBrush}" VerticalAlignment="Center" />
                         <TextBox Text="{Binding Time}" Width="64" Height="32" MinHeight="32" Padding="6,0" VerticalContentAlignment="Center" />
                         <Button Content="{Binding SaveText}" Command="{Binding SaveCommand}" Height="32" Theme="{DynamicResource SolidButton}" Classes="Primary" />
@@ -212,7 +212,14 @@
             </StackPanel>
           </Border>
           <Button DockPanel.Dock="Bottom" Content="{r:T AddEvent}" Command="{Binding StartAddCommand}"
-                  IsVisible="{Binding HasSelection}" Margin="0,8,0,0" HorizontalAlignment="Left" />
+                  Margin="0,8,0,0" HorizontalAlignment="Left">
+            <Button.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="HasSelection" />
+                <Binding Path="Main.CanEditAttendance" />
+              </MultiBinding>
+            </Button.IsVisible>
+          </Button>
 
           <TextBlock DockPanel.Dock="Top" Text="{r:T NoDayEvents}" Classes="muted"
                      IsVisible="{Binding HasNoDayEvents}" />

@@ -19,8 +19,10 @@ public sealed class WriteGate
 public static class Endpoints
 {
     public const int MaxNameLength = 100;
+    public const int MaxTabelNoLength = 16;
     public const int MaxReasonLength = 200;
     public const string PairRateLimitPolicy = "pair";
+    public const string JoinRateLimitPolicy = "join";
 
     public static void Map(WebApplication app)
     {
@@ -30,6 +32,8 @@ public static class Endpoints
         app.MapPost(Api.Routes.Installations, RegisterInstallation);
         app.MapPost("/api/installations/{id:guid}/pairing-codes", CreatePairingCode).RequireCaller(CallerKind.Desktop);
         app.MapPost(Api.Routes.PairDevice, PairDevice).RequireRateLimiting(PairRateLimitPolicy);
+        app.MapPost("/api/installations/{id:guid}/join-codes", CreateJoinCode).RequireCaller(CallerKind.Desktop);
+        app.MapPost(Api.Routes.JoinInstallation, JoinInstallation).RequireRateLimiting(JoinRateLimitPolicy);
         app.MapGet(Api.Routes.Devices, ListDevices).RequireCaller(CallerKind.Desktop);
         app.MapPost("/api/devices/{id:guid}/deactivate", DeactivateDevice).RequireCaller(CallerKind.Desktop);
 
@@ -59,15 +63,83 @@ public static class Endpoints
             return Problem(StatusCodes.Status409Conflict, "Bu o'rnatma serverda allaqachon ro'yxatdan o'tgan.");
 
         var apiKey = Secrets.NewToken();
-        db.Installations.Add(new Installation
+        var now = clock.GetUtcNow();
+        db.Installations.Add(new Installation { Id = id, Name = req.Name.Trim(), CreatedAt = now });
+        db.ApiKeys.Add(new ApiKey
         {
-            Id = id,
+            Id = Guid.NewGuid(),
+            InstallationId = id,
+            KeyHash = Secrets.Hash(apiKey),
             Name = req.Name.Trim(),
-            ApiKeyHash = Secrets.Hash(apiKey),
-            CreatedAt = clock.GetUtcNow(),
+            SiteIndex = 0, // asosiy mashina — tabel 1..
+            CreatedAt = now,
         });
         await db.SaveChangesAsync();
         return Results.Ok(new RegisterInstallationResponse(id, apiKey));
+    }
+
+    // ---------- Ko'p-zavod: ulanish (Bosqich 3) ----------
+
+    /// <summary>Ikkinchi mashina uchun ulanish kodi: 6 xona, 10 daqiqa, bir martalik. Telefon kodlaridan alohida jadval.</summary>
+    private static async Task<IResult> CreateJoinCode(Guid id, HttpContext http, ServerDb db, TimeProvider clock)
+    {
+        var caller = Caller.Get(http);
+        if (caller.InstallationId != id)
+            return Problem(StatusCodes.Status403Forbidden, "Boshqa o'rnatma.");
+
+        var now = clock.GetUtcNow();
+        string code;
+        do code = Secrets.NewPairingCode();
+        while (await db.JoinCodes.AnyAsync(c => c.Code == code && c.InstallationId == id && c.UsedAt == null && c.ExpiresAt > now));
+
+        var expiresAt = now + Api.PairingCodeLifetime;
+        db.JoinCodes.Add(new JoinCode { Code = code, InstallationId = id, ExpiresAt = expiresAt });
+        await db.SaveChangesAsync();
+        return Results.Ok(new JoinCodeResponse(code, expiresAt));
+    }
+
+    /// <summary>
+    /// Mavjud o'rnatmaga ulanish (kalitsiz, kod + InstallationId). Muvaffaqiyatda: kod ishlatilgan, JoinCount+1 (monoton),
+    /// YANGI alohida ApiKey va shu mashinaning tabel diapazoni. Xatolar PairDevice kabi: 400/409/410 (+429 — limiter).
+    /// </summary>
+    private static async Task<IResult> JoinInstallation(JoinInstallationRequest req, ServerDb db, TimeProvider clock)
+    {
+        var name = (req.Name ?? "").Trim();
+        if (name.Length is 0 or > 200)
+            return Problem(StatusCodes.Status400BadRequest, "Nom noto'g'ri.");
+
+        var now = clock.GetUtcNow();
+        var code = (req.Code ?? "").Trim();
+        var candidates = await db.JoinCodes.Where(c => c.Code == code && c.InstallationId == req.InstallationId).ToListAsync();
+        var match = candidates.FirstOrDefault(c => c.UsedAt == null && c.ExpiresAt > now);
+        if (match is null)
+        {
+            return candidates.MaxBy(c => c.ExpiresAt) switch
+            {
+                null => Problem(StatusCodes.Status400BadRequest, "Kod noto'g'ri."),
+                { UsedAt: not null } => Problem(StatusCodes.Status409Conflict, "Kod allaqachon ishlatilgan."),
+                _ => Problem(StatusCodes.Status410Gone, "Kod muddati o'tgan."),
+            };
+        }
+        var installation = await db.Installations.FirstOrDefaultAsync(i => i.Id == req.InstallationId);
+        if (installation is null)
+            return Problem(StatusCodes.Status400BadRequest, "Kod noto'g'ri.");
+
+        match.UsedAt = now;
+        installation.JoinCount++; // monoton: diapazon hech qachon qayta berilmaydi
+        var siteIndex = installation.JoinCount;
+        var apiKey = Secrets.NewToken();
+        db.ApiKeys.Add(new ApiKey
+        {
+            Id = Guid.NewGuid(),
+            InstallationId = installation.Id,
+            KeyHash = Secrets.Hash(apiKey),
+            Name = name,
+            SiteIndex = siteIndex,
+            CreatedAt = now,
+        });
+        await db.SaveChangesAsync();
+        return Results.Ok(new JoinInstallationResponse(installation.Id, apiKey, ApiKey.TabelBaseOf(siteIndex)));
     }
 
     private static async Task<IResult> CreatePairingCode(Guid id, HttpContext http, ServerDb db, TimeProvider clock)
@@ -176,6 +248,7 @@ public static class Endpoints
             var name = dto.FullName.Trim();
             var note = string.IsNullOrWhiteSpace(dto.Note) ? null : dto.Note.Trim();
             if (note?.Length > MaxNameLength) note = note[..MaxNameLength];
+            var tabel = NormalizeTabelNo(dto.TabelNo);
 
             if (!existing.Remove(dto.Id, out var snap))
             {
@@ -187,26 +260,26 @@ public static class Endpoints
                     Note = note,
                     IsActive = dto.IsActive,
                     MaxShiftMinutes = dto.MaxShiftMinutes,
+                    TabelNo = tabel,
                     UpdatedAt = now,
                 });
                 changed++;
                 continue;
             }
-            if (snap.FullName == name && snap.Note == note && snap.IsActive == dto.IsActive && snap.MaxShiftMinutes == dto.MaxShiftMinutes)
+            tabel ??= snap.TabelNo; // eski desktop TabelNo yubormaydi — mavjudini o'chirmaymiz
+            if (snap.FullName == name && snap.Note == note && snap.IsActive == dto.IsActive && snap.MaxShiftMinutes == dto.MaxShiftMinutes
+                && snap.TabelNo == tabel)
                 continue;
             snap.FullName = name;
             snap.Note = note;
             snap.IsActive = dto.IsActive;
             snap.MaxShiftMinutes = dto.MaxShiftMinutes;
+            snap.TabelNo = tabel;
             snap.UpdatedAt = now;
             changed++;
         }
-        foreach (var missing in existing.Values.Where(s => s.IsActive))
-        {
-            missing.IsActive = false;
-            missing.UpdatedAt = now;
-            changed++;
-        }
+        // Bosqich 3: upsert-only. Ro'yxatda yo'q xodim nofaol QILINMAYDI — bir o'rnatmaga bir nechta zavod (desktop) yozadi,
+        // har biri faqat o'zi bilganini jo'natadi. Nofaol qilish faqat IsActive=false ni push qilish orqali.
         await db.SaveChangesAsync();
         return Results.Ok(new { changed });
     }
@@ -224,8 +297,17 @@ public static class Endpoints
         var list = await query.ToListAsync();
         return Results.Ok(list
             .OrderBy(e => e.FullName, StringComparer.Ordinal)
-            .Select(e => new EmployeeDto(e.EmployeeId, e.FullName, e.Note, e.IsActive, e.UpdatedAt, e.MaxShiftMinutes))
+            .Select(e => new EmployeeDto(e.EmployeeId, e.FullName, e.Note, e.IsActive, e.UpdatedAt, e.MaxShiftMinutes, e.TabelNo))
             .ToList());
+    }
+
+    /// <summary>Tabel raqami: bo'sh — null; uzunligi cheklanadi.</summary>
+    private static string? NormalizeTabelNo(string? value)
+    {
+        var t = value?.Trim();
+        if (string.IsNullOrEmpty(t))
+            return null;
+        return t.Length > MaxTabelNoLength ? t[..MaxTabelNoLength] : t;
     }
 
     // ---------- Davomat ----------

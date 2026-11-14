@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Oylik.Core.Domain;
 using Oylik.Data;
 using Oylik.Desktop.Resources;
+using Oylik.Desktop.Services;
 using Oylik.Desktop.Services.Payslips;
 using Oylik.Desktop.Views;
 using Serilog;
@@ -38,6 +39,11 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
     public bool HasNoPeriod => Period is null && Main.IsReady;
     public bool IsOpen => Period is { IsClosed: false };
     public bool IsClosed => Period is { IsClosed: true };
+
+    /// <summary>Jadval faqat ko'rish uchun: oy yopilgan yoki rol tahrir qila olmaydi (Rahbar).</summary>
+    public bool IsGridReadOnly => IsClosed || !Main.CanEdit;
+
+    public void OnRoleChanged() => OnPropertyChanged(nameof(IsGridReadOnly));
     public string MonthLabel => Period is null ? "—" : Strings.MonthLabel(Period.Key);
     public string ClosedAtText => Period?.ClosedAt is { } at ? Strings.ClosedAt(at) : "";
 
@@ -53,6 +59,7 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
         OnPropertyChanged(nameof(HasNoPeriod));
         OnPropertyChanged(nameof(IsOpen));
         OnPropertyChanged(nameof(IsClosed));
+        OnPropertyChanged(nameof(IsGridReadOnly));
         OnPropertyChanged(nameof(MonthLabel));
         OnPropertyChanged(nameof(ClosedAtText));
         PrevMonthCommand.NotifyCanExecuteChanged();
@@ -111,6 +118,13 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
     }
 
     /// <summary>Jami/Qoldiq qayta o'qiladi (Schedule qatorlari jonli hisoblanganda) — qatorlar qayta qurilmaydi.</summary>
+    /// <summary>Terminaldan yuz holati o'zgarganda — qatorlardagi yuz ikonasini (rang/maslahat) yangilaydi.</summary>
+    public void RefreshFaces()
+    {
+        foreach (var row in Rows)
+            row.Refresh();
+    }
+
     public void RefreshTotals()
     {
         foreach (var row in Rows)
@@ -222,6 +236,7 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
         }
         row.Refresh();
         RefreshSummary();
+        _ = Main.FaceTerminal.PushEmployeeAsync(row.Employee); // ism/holat o'zgarsa terminalga ham, best-effort
     }
 
     // ---------- Oy navigatsiyasi ----------
@@ -248,6 +263,8 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
     [RelayCommand]
     private async Task NewPeriod()
     {
+        if (!Main.Demand(Access.Edit))
+            return;
         var key = Service.NextPeriodKey();
         if (!await Main.Dialogs.ConfirmAsync(Strings.ConfirmNewPeriod(Strings.Month(key))))
             return;
@@ -262,6 +279,8 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
     [RelayCommand]
     private async Task ClosePeriod()
     {
+        if (!Main.Demand(Access.Edit))
+            return;
         if (Period is not { IsClosed: false } period)
             return;
         if (!await Main.ConfirmUnconfirmedEventsAsync(period))
@@ -280,6 +299,8 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
     [RelayCommand]
     private async Task Reopen()
     {
+        if (!Main.Demand(Access.Edit))
+            return;
         if (Period is not { IsClosed: true } period)
             return;
         if (!await Main.Dialogs.ConfirmAsync(Strings.ConfirmReopen(Strings.Month(period.Key)), Strings.ReopenPeriod, Strings.Cancel))
@@ -319,6 +340,8 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
     [RelayCommand]
     private async Task Import()
     {
+        if (!Main.Demand(Access.Edit))
+            return;
         var vm = new ImportViewModel(Main, Period?.Key);
         await Main.Dialogs.ShowDialogAsync(new ImportWindow { DataContext = vm });
         if (vm.ImportedPeriod is { } key)
@@ -331,6 +354,8 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
     [RelayCommand]
     private async Task NewEmployee()
     {
+        if (!Main.Demand(Access.Edit))
+            return;
         if (Period is not { IsClosed: false } period)
             return;
         var vm = new NewEmployeeViewModel(Main, period);
@@ -339,6 +364,13 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
         {
             BuildRows();
             SelectedRow = Rows.FirstOrDefault(r => r.Line == vm.CreatedLine);
+            var emp = vm.CreatedLine.Employee ?? Service.Employees.FirstOrDefault(e => e.Id == vm.CreatedLine.EmployeeId);
+            if (emp is not null)
+            {
+                await Main.FaceTerminal.PushEmployeeAsync(emp);   // terminalga ID+ism
+                if (Main.FaceTerminal.IsEnabled)
+                    await FaceEnroll.RunAsync(Main, emp);         // yuz qo'shishni taklif qiladi (rasm yoki terminalda olish)
+            }
         }
     }
 
@@ -357,6 +389,8 @@ public sealed partial class PayrollViewModel(MainWindowViewModel main) : Observa
     [RelayCommand]
     private async Task RemoveLine(PayrollRowViewModel? row)
     {
+        if (!Main.Demand(Access.Edit))
+            return;
         row ??= SelectedRow;
         if (row is null || Period is not { IsClosed: false } period)
             return;

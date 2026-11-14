@@ -11,8 +11,45 @@ public sealed class Installation
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = "";
-    public string ApiKeyHash { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; }
+
+    /// <summary>
+    /// Bosqich 3: muvaffaqiyatli join'lar sanagichi — MONOTON (kamaymaydi, kalit o'chirilsa ham qayta ishlatilmaydi).
+    /// Har ulangan mashina sayt raqami = shu qiymat; tabel diapazoni <see cref="ApiKey.TabelBaseOf"/>.
+    /// </summary>
+    public int JoinCount { get; set; }
+}
+
+/// <summary>
+/// Bosqich 3: desktop kaliti (X-Api-Key). O'rnatmaga 1:ko'p — asosiy mashina (ro'yxatdan o'tganda, sayt 0) va har join
+/// qilgan mashina o'z kalitini oladi (bitta kalit ulashilmaydi).
+/// </summary>
+public sealed class ApiKey
+{
+    public Guid Id { get; set; }
+    public Guid InstallationId { get; set; }
+    public string KeyHash { get; set; } = "";
+
+    /// <summary>Mashina nomi (join so'rovidagi; asosiy — o'rnatma nomi).</summary>
+    public string Name { get; set; } = "";
+
+    /// <summary>0 — asosiy mashina; 1, 2, ... — join tartibi.</summary>
+    public int SiteIndex { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
+
+    /// <summary>Sayt tabel diapazoni boshi: 0 → 1 (asosiy, lokal default), n → n·1 000 000 + 1.</summary>
+    public static int TabelBaseOf(int siteIndex) => siteIndex * 1_000_000 + 1;
+}
+
+/// <summary>Bosqich 3: ikkinchi mashina uchun ulanish kodi — telefon <see cref="PairingCode"/> dan ALOHIDA jadval.</summary>
+public sealed class JoinCode
+{
+    public long Id { get; set; }
+    public string Code { get; set; } = "";
+    public Guid InstallationId { get; set; }
+    public DateTimeOffset ExpiresAt { get; set; }
+    public DateTimeOffset? UsedAt { get; set; }
 }
 
 public sealed class Device
@@ -45,6 +82,9 @@ public sealed class EmployeeSnapshot
 
     /// <summary>H14: juftlik chegarasi (daqiqa) — telefon «Ichkarida» uchun; null — Api.DefaultMaxShift.</summary>
     public int? MaxShiftMinutes { get; set; }
+
+    /// <summary>Bosqich 3: doimiy tabel raqami — ko'p-zavodda har zavod terminali xodimni shu raqam bilan taniydi. null — berilmagan.</summary>
+    public string? TabelNo { get; set; }
 
     /// <summary>Server vaqti — o'zgarish serverga yetgan payt (telefon `updatedSince` kursori uchun).</summary>
     public DateTimeOffset UpdatedAt { get; set; }
@@ -85,6 +125,8 @@ public sealed class ServerDb(DbContextOptions<ServerDb> options) : DbContext(opt
     public DbSet<Installation> Installations => Set<Installation>();
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<PairingCode> PairingCodes => Set<PairingCode>();
+    public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
+    public DbSet<JoinCode> JoinCodes => Set<JoinCode>();
     public DbSet<EmployeeSnapshot> Employees => Set<EmployeeSnapshot>();
     public DbSet<AttendanceEvent> Events => Set<AttendanceEvent>();
     public DbSet<SeqCounter> Counters => Set<SeqCounter>();
@@ -102,8 +144,21 @@ public sealed class ServerDb(DbContextOptions<ServerDb> options) : DbContext(opt
         {
             e.Property(x => x.Id).ValueGeneratedNever();
             e.Property(x => x.Name).HasMaxLength(200);
-            e.Property(x => x.ApiKeyHash).HasMaxLength(64).IsRequired();
-            e.HasIndex(x => x.ApiKeyHash).IsUnique();
+        });
+
+        b.Entity<ApiKey>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.KeyHash).HasMaxLength(64).IsRequired();
+            e.HasIndex(x => x.KeyHash).IsUnique();
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.HasIndex(x => x.InstallationId);
+        });
+
+        b.Entity<JoinCode>(e =>
+        {
+            e.Property(x => x.Code).HasMaxLength(Api.PairingCodeLength).IsRequired();
+            e.HasIndex(x => new { x.InstallationId, x.Code });
         });
 
         b.Entity<Device>(e =>
@@ -126,6 +181,7 @@ public sealed class ServerDb(DbContextOptions<ServerDb> options) : DbContext(opt
             e.HasKey(x => new { x.InstallationId, x.EmployeeId });
             e.Property(x => x.FullName).HasMaxLength(100).IsRequired();
             e.Property(x => x.Note).HasMaxLength(100);
+            e.Property(x => x.TabelNo).HasMaxLength(16);
             e.HasIndex(x => new { x.InstallationId, x.UpdatedAt });
         });
 

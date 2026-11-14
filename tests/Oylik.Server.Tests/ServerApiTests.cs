@@ -67,8 +67,10 @@ public sealed class ServerApiTests : IDisposable
 
         using var scope = _server.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ServerDb>();
-        var installation = db.Installations.Single();
-        installation.ApiKeyHash.Should().NotBe(res.ApiKey).And.Be(Secrets.Hash(res.ApiKey));
+        var key = db.ApiKeys.Single();
+        key.KeyHash.Should().NotBe(res.ApiKey).And.Be(Secrets.Hash(res.ApiKey));
+        key.InstallationId.Should().Be(res.InstallationId);
+        key.SiteIndex.Should().Be(0, "ro'yxatdan o'tgan mashina — asosiy (tabel 1..)");
     }
 
     // ---------- Bog'lash ----------
@@ -208,7 +210,7 @@ public sealed class ServerApiTests : IDisposable
     // ---------- Xodimlar ----------
 
     [Fact]
-    public async Task Employees_put_is_full_list_upsert_and_get_supports_updated_since()
+    public async Task Employees_put_is_upsert_only_and_get_supports_updated_since()
     {
         var (desktop, installationId) = await _server.RegisterAsync();
         var (phone, _) = await _server.PairAsync(desktop, installationId);
@@ -221,19 +223,48 @@ public sealed class ServerApiTests : IDisposable
         var firstSync = all.Max(e => e.UpdatedAt);
 
         _server.Clock.Advance(TimeSpan.FromMinutes(1));
-        await TestServer.PutEmployeesAsync(desktop, a with { FullName = "Олим ака (тест)" }); // b ro'yxatda yo'q → nofaol
+        await TestServer.PutEmployeesAsync(desktop, a with { FullName = "Олим ака (тест)" }); // b ro'yxatda yo'q — o'zgarmaydi
 
         var since = Uri.EscapeDataString(firstSync.AddTicks(1).ToString("O"));
         var changed = await Read<List<EmployeeDto>>(await phone.GetAsync($"{Api.Routes.Employees}?updatedSince={since}"));
-        changed.Should().HaveCount(2);
-        changed.Single(e => e.Id == a.Id).FullName.Should().Be("Олим ака (тест)");
-        changed.Single(e => e.Id == b.Id).IsActive.Should().BeFalse();
+        changed.Should().ContainSingle().Which.FullName.Should().Be("Олим ака (тест)");
+        (await Read<List<EmployeeDto>>(await phone.GetAsync(Api.Routes.Employees))).Single(e => e.Id == b.Id).IsActive
+            .Should().BeTrue("Bosqich 3: boshqa zavod xodimi ro'yxatda yo'qligi uchun nofaol qilinmaydi");
+
+        // nofaol — faqat IsActive=false push orqali
+        _server.Clock.Advance(TimeSpan.FromMinutes(1));
+        await TestServer.PutEmployeesAsync(desktop, b with { IsActive = false });
+        (await Read<List<EmployeeDto>>(await phone.GetAsync(Api.Routes.Employees))).Single(e => e.Id == b.Id).IsActive.Should().BeFalse();
 
         // o'zgarmagan ro'yxat — hech narsa yangilanmaydi
         _server.Clock.Advance(TimeSpan.FromMinutes(1));
         var now = Uri.EscapeDataString(_server.Clock.GetUtcNow().ToString("O"));
-        await TestServer.PutEmployeesAsync(desktop, a with { FullName = "Олим ака (тест)" });
+        await TestServer.PutEmployeesAsync(desktop, a with { FullName = "Олим ака (тест)" }, b with { IsActive = false });
         (await Read<List<EmployeeDto>>(await phone.GetAsync($"{Api.Routes.Employees}?updatedSince={now}"))).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Employees_carry_tabel_number_and_old_clients_do_not_clear_it()
+    {
+        var (desktop, _) = await _server.RegisterAsync();
+        var a = TestServer.Employee("Олим ака") with { TabelNo = " 7 " };
+        await TestServer.PutEmployeesAsync(desktop, a);
+        var first = (await Read<List<EmployeeDto>>(await desktop.GetAsync(Api.Routes.Employees))).Single();
+        first.TabelNo.Should().Be("7");
+
+        // TabelNo yubormaydigan eski desktop — mavjud raqam saqlanadi, o'zgarish sanalmaydi
+        _server.Clock.Advance(TimeSpan.FromMinutes(1));
+        await TestServer.PutEmployeesAsync(desktop, a with { TabelNo = null });
+        var same = (await Read<List<EmployeeDto>>(await desktop.GetAsync(Api.Routes.Employees))).Single();
+        same.TabelNo.Should().Be("7");
+        same.UpdatedAt.Should().Be(first.UpdatedAt);
+
+        // raqam o'zgarsa — UpdatedAt yangilanadi (boshqa zavod pull'da oladi)
+        _server.Clock.Advance(TimeSpan.FromMinutes(1));
+        await TestServer.PutEmployeesAsync(desktop, a with { TabelNo = "8" });
+        var moved = (await Read<List<EmployeeDto>>(await desktop.GetAsync(Api.Routes.Employees))).Single();
+        moved.TabelNo.Should().Be("8");
+        moved.UpdatedAt.Should().BeAfter(first.UpdatedAt);
     }
 
     [Fact]

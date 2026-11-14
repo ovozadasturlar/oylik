@@ -220,6 +220,13 @@ public sealed class AttendanceEngine(TimeProvider clock)
         return e;
     }
 
+    /// <summary>Yuz terminalidan avtomatik yozilgan voqea (audit izi).</summary>
+    public void LogTerminal(AttendanceEvent e, Employee employee, string terminalName)
+    {
+        var comment = string.IsNullOrWhiteSpace(terminalName) ? "Yuz terminali" : $"Yuz terminali: {terminalName}";
+        Log(e.Id, "TerminalAdded", null, Describe(employee, e), comment);
+    }
+
     public void Void(Employee? employee, AttendanceEvent e, string reason)
     {
         if (string.IsNullOrWhiteSpace(reason))

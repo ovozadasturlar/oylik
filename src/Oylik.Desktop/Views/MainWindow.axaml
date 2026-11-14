@@ -35,6 +35,12 @@
 
         <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="10,12,0,0">
           <Separator Margin="-10,0,0,6" />
+          <!-- Bosqich 1: joriy rol va almashtirish (Admin PINi o'rnatilgan bo'lsa) -->
+          <DockPanel Margin="0,0,0,4" IsVisible="{Binding LoginRequired}">
+            <Button DockPanel.Dock="Right" Classes="link" Content="{r:T SwitchRole}" Command="{Binding SwitchRoleCommand}" />
+            <TextBlock Text="{Binding RoleText}" Classes="muted" FontWeight="SemiBold" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" />
+          </DockPanel>
           <!-- Til va mavzu: ixcham qator, kam ishlatiladi (Sozlamalar → Ko'rinish bilan sinxron) -->
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="-6,0,0,4">
             <ComboBox Classes="lang" ItemsSource="{Binding LanguageShortOptions}" SelectedIndex="{Binding LanguageIndex}"
@@ -62,37 +68,43 @@
         </StackPanel>
 
         <StackPanel Spacing="2">
-          <Button Classes="nav" Classes.active="{Binding IsPayroll}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Payroll}">
+          <Button Classes="nav" Classes.active="{Binding IsPayroll}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Payroll}"
+                  IsVisible="{Binding CanOpenPayroll}">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <Path Classes="icon" Data="M3,4 H21 V20 H3 Z M3,10 H21 M9,4 V20" Stroke="{Binding $parent[Button].Foreground}" />
               <TextBlock Text="{r:T NavPayroll}" />
             </StackPanel>
           </Button>
-          <Button Classes="nav" Classes.active="{Binding IsEmployees}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Employees}">
+          <Button Classes="nav" Classes.active="{Binding IsEmployees}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Employees}"
+                  IsVisible="{Binding CanOpenEmployees}">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <Path Classes="icon" Data="M12,12 A4,4 0 1 0 12,4 A4,4 0 1 0 12,12 M4,21 C4,16 8,14 12,14 C16,14 20,16 20,21 Z" Stroke="{Binding $parent[Button].Foreground}" />
               <TextBlock Text="{r:T NavEmployees}" />
             </StackPanel>
           </Button>
-          <Button Classes="nav" Classes.active="{Binding IsAttendance}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Attendance}">
+          <Button Classes="nav" Classes.active="{Binding IsAttendance}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Attendance}"
+                  IsVisible="{Binding CanOpenAttendance}">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <Path Classes="icon" Data="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M11,6 H13 V12 L16,14 L15,15.5 L11,13 Z" Stroke="{Binding $parent[Button].Foreground}" />
               <TextBlock Text="{r:T NavAttendance}" />
             </StackPanel>
           </Button>
-          <Button Classes="nav" Classes.active="{Binding IsPeriods}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Periods}">
+          <Button Classes="nav" Classes.active="{Binding IsPeriods}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Periods}"
+                  IsVisible="{Binding CanOpenPeriods}">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <Path Classes="icon" Data="M3,5 H21 V21 H3 Z M3,10 H21 M8,3 V7 M16,3 V7" Stroke="{Binding $parent[Button].Foreground}" />
               <TextBlock Text="{r:T NavPeriods}" />
             </StackPanel>
           </Button>
-          <Button Classes="nav" Classes.active="{Binding IsAudit}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Audit}">
+          <Button Classes="nav" Classes.active="{Binding IsAudit}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Audit}"
+                  IsVisible="{Binding CanOpenAudit}">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <Path Classes="icon" Data="M4,5 H20 V7 H4 Z M4,11 H15 V13 H4 Z M4,17 H11 V19 H4 Z" Stroke="{Binding $parent[Button].Foreground}" />
               <TextBlock Text="{r:T NavAudit}" />
             </StackPanel>
           </Button>
-          <Button Classes="nav" Classes.active="{Binding IsSettings}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Settings}">
+          <Button Classes="nav" Classes.active="{Binding IsSettings}" Command="{Binding NavigateCommand}" CommandParameter="{x:Static vm:Page.Settings}"
+                  IsVisible="{Binding CanOpenSettings}">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <Path Classes="icon" Data="M12,8 A4,4 0 1 0 12,16 A4,4 0 1 0 12,8 M11,1 H13 V5 H11 Z M11,19 H13 V23 H11 Z M1,11 H5 V13 H1 Z M19,11 H23 V13 H19 Z" Stroke="{Binding $parent[Button].Foreground}" />
               <TextBlock Text="{r:T NavSettings}" />
@@ -111,6 +123,45 @@
         <Button DockPanel.Dock="Right" Content="✕" Classes="link" Foreground="{DynamicResource DangerText}" Click="DismissError" />
         <TextBlock Text="{Binding StatusError}" Foreground="{DynamicResource DangerText}" FontWeight="SemiBold" TextWrapping="Wrap" />
       </DockPanel>
+    </Border>
+
+    <!-- Bosqich 1: kirish ekrani — rol + PIN (Admin PINi o'rnatilgan bo'lsa) -->
+    <Border Grid.ColumnSpan="2" Grid.RowSpan="2" Background="{DynamicResource GroundBrush}" IsVisible="{Binding IsLocked}"
+            ZIndex="10" x:Name="LoginOverlay">
+      <Border Classes="card login" Padding="32" Width="380" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="14" DataContext="{Binding Login}" x:DataType="vm:LoginViewModel">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Image Source="/Assets/oylik-256.png" Width="34" Height="34" RenderOptions.BitmapInterpolationMode="HighQuality" />
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="{x:Static r:Strings.AppName}" FontWeight="Bold" FontSize="16" />
+              <TextBlock Text="{r:T LoginTitle}" Classes="muted" />
+            </StackPanel>
+          </StackPanel>
+          <TextBlock Text="{r:T LoginHint}" Classes="muted" TextWrapping="Wrap" />
+          <StackPanel Spacing="4">
+            <TextBlock Text="{r:T LoginRole}" Classes="muted" FontWeight="SemiBold" />
+            <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole}" HorizontalAlignment="Stretch" Height="42">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:RoleOption">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </StackPanel>
+          <StackPanel Spacing="4">
+            <TextBlock Text="{r:T LoginPin}" Classes="muted" FontWeight="SemiBold" />
+            <TextBox x:Name="PinBox" Text="{Binding Pin}" PasswordChar="•" MaxLength="8" Height="42" VerticalContentAlignment="Center">
+              <TextBox.KeyBindings>
+                <KeyBinding Gesture="Enter" Command="{Binding SignInCommand}" />
+              </TextBox.KeyBindings>
+            </TextBox>
+          </StackPanel>
+          <TextBlock Text="{Binding Error}" Foreground="{DynamicResource DangerText}" FontWeight="SemiBold" TextWrapping="Wrap"
+                     IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <Button Content="{r:T LoginButton}" Command="{Binding SignInCommand}" IsEnabled="{Binding !IsBusy}"
+                  Theme="{DynamicResource SolidButton}" Classes="Primary" HorizontalAlignment="Stretch" Height="42" />
+        </StackPanel>
+      </Border>
     </Border>
   </Grid>
 </Window>

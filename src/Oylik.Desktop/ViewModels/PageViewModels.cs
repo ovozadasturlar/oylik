@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Oylik.Core.Domain;
 using Oylik.Desktop.Resources;
+using Oylik.Desktop.Services;
 
 namespace Oylik.Desktop.ViewModels;
 
@@ -46,6 +47,8 @@ public sealed partial class PeriodsViewModel(MainWindowViewModel main) : Observa
         NewPeriodText = $"{Strings.NewPeriod} — {Strings.Month(main.Service.NextPeriodKey())}";
     }
 
+    public MainWindowViewModel Main => main;
+
     private bool HasSelected() => Selected is not null;
     private bool CanClose() => Selected is { IsOpen: true };
     private bool CanReopen() => Selected is { IsClosed: true }
@@ -54,6 +57,8 @@ public sealed partial class PeriodsViewModel(MainWindowViewModel main) : Observa
     [RelayCommand]
     private async Task NewPeriod()
     {
+        if (!main.Demand(Access.Edit))
+            return;
         var key = main.Service.NextPeriodKey();
         if (!await main.Dialogs.ConfirmAsync(Strings.ConfirmNewPeriod(Strings.Month(key))))
             return;
@@ -67,6 +72,8 @@ public sealed partial class PeriodsViewModel(MainWindowViewModel main) : Observa
     [RelayCommand(CanExecute = nameof(CanClose))]
     private async Task Close()
     {
+        if (!main.Demand(Access.Edit))
+            return;
         var p = Selected!.Period;
         if (!await main.ConfirmUnconfirmedEventsAsync(p))
             return;
@@ -83,6 +90,8 @@ public sealed partial class PeriodsViewModel(MainWindowViewModel main) : Observa
     [RelayCommand(CanExecute = nameof(CanReopen))]
     private async Task Reopen()
     {
+        if (!main.Demand(Access.Edit))
+            return;
         var p = Selected!.Period;
         if (!await main.Dialogs.ConfirmAsync(Strings.ConfirmReopen(Strings.Month(p.Key)), Strings.ReopenPeriod, Strings.Cancel))
             return;
@@ -237,8 +246,10 @@ public sealed partial class SettingsViewModel(MainWindowViewModel main) : Observ
         DataFolder = main.Paths.Root;
         BackupInfo = Strings.BackupAt(main.Service.Backup.LastBackupAt());
         LoadServer();
+        LoadTerminal();
         LoadBranches();
         LoadSchedules();
+        LoadRoles();
         _loading = false;
     }
 
@@ -250,6 +261,7 @@ public sealed partial class SettingsViewModel(MainWindowViewModel main) : Observ
         RefreshServer();
         RefreshBranchTexts();
         RefreshScheduleTexts();
+        RefreshRoleTexts();
     }
 
     partial void OnShortInputEnabledChanged(bool value) { if (!_loading) _ = Save(); }

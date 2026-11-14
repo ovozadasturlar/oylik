@@ -14,6 +14,9 @@ public interface IDialogs
     /// <summary>Bir nechta tugmali savol; tanlangan tugma indeksi, yopilsa — -1. Birinchi tugma asosiy.</summary>
     Task<int> ChooseAsync(string title, string message, params string[] options);
     Task<string?> PickOpenExcelAsync();
+
+    /// <summary>Yuz surati (JPEG/PNG) tanlash — terminalga yuklash uchun. Bekor — null.</summary>
+    Task<string?> PickImageAsync();
     Task<string?> PickSaveExcelAsync(string suggestedName);
     Task<string?> PickFolderAsync();
     Task ShowDialogAsync(Window dialog);
@@ -152,6 +155,17 @@ public sealed class Dialogs(Func<Window?> owner) : IDialogs
             Title = Strings.ImportTitle,
             AllowMultiple = false,
             FileTypeFilter = [new FilePickerFileType("Excel") { Patterns = ["*.xlsx", "*.xlsm"] }],
+        });
+        return files.Count > 0 ? files[0].TryGetLocalPath() : null;
+    }
+
+    public async Task<string?> PickImageAsync()
+    {
+        var files = await Owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = Strings.TerminalFacePickImage,
+            AllowMultiple = false,
+            FileTypeFilter = [new FilePickerFileType("JPEG/PNG") { Patterns = ["*.jpg", "*.jpeg", "*.png"] }],
         });
         return files.Count > 0 ? files[0].TryGetLocalPath() : null;
     }

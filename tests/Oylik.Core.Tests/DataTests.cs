@@ -184,4 +184,17 @@ public sealed class DataTests : IDisposable
         backup.Create();
         Directory.EnumerateFiles(Paths.Backups, "oylik-*.db").Should().HaveCount(BackupService.KeepCount);
     }
+
+    [Fact]
+    public async Task New_employee_in_roster_appears_in_open_period()
+    {
+        using var s = await OpenAsync();
+        var period = await s.CreatePeriodAsync(new MonthKey(2026, 10));
+
+        var roster = await s.CreateEmployeeInRosterAsync("Yangi", 0, null, null);
+        var plain = await s.CreateEmployeeAsync("Boshqa", 0, null, null);
+
+        period.FindLine(roster.Id).Should().NotBeNull("roster orqali qo'shilgan xodim ochiq oyga tushadi");
+        period.FindLine(plain.Id).Should().BeNull("oddiy CreateEmployee ochiq oyga qator qo'shmaydi");
+    }
 }

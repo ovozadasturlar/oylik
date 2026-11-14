@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <!-- Bosqich 2: fon agenti — terminal davomati → lokal baza → server. Windows service (headless) yoki Startup ilova (tray ikonasi bilan). -->
+  <PropertyGroup>
+    <!-- WinExe: Startup (logon) rejimida konsol oynasi chiqmaydi; log — faylda. Service sifatida ham shu exe. -->
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>Oylik.Agent</AssemblyName>
+    <RootNamespace>Oylik.Agent</RootNamespace>
+    <Version>0.1.0</Version>
+    <ApplicationIcon>..\Oylik.Desktop\Assets\oylik.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- dotnet publish src/Oylik.Agent -c Release -r win-x64 -o publish/agent → bitta Oylik.Agent.exe -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.12" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <!-- Tray ikonasi (faqat interaktiv sessiyada; service rejimida Avalonia ishga tushmaydi) -->
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Oylik.Data\Oylik.Data.csproj" />
+    <ProjectReference Include="..\Oylik.Contracts\Oylik.Contracts.csproj" />
+  </ItemGroup>
+
+  <!-- UI matnlari faqat Desktop/Resources/Strings.cs da — agent shu fayllarni havola qilib oladi (Desktop loyihasiga bog'lanmaydi). -->
+  <ItemGroup>
+    <Compile Include="..\Oylik.Desktop\Resources\Strings.cs" Link="Resources\Strings.cs" />
+    <Compile Include="..\Oylik.Desktop\Resources\Localization.cs" Link="Resources\Localization.cs" />
+    <AvaloniaResource Include="..\Oylik.Desktop\Assets\oylik-256.png" Link="Assets\oylik-256.png" />
+  </ItemGroup>
+</Project>
