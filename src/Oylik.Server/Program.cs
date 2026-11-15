@@ -1,6 +1,9 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Storage;
 using Oylik.Contracts;
 using Oylik.Server;
 
@@ -11,8 +14,21 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<WriteGate>();
 builder.Services.AddProblemDetails();
 
-var connection = builder.Configuration.GetConnectionString("Oylik") ?? "Data Source=data/oylik-server.db";
-builder.Services.AddDbContext<ServerDb>(o => o.UseSqlite(connection));
+// Baza: prod — PostgreSQL (default), testlar — SQLite (Oylik:Database=sqlite). Ulanish satri: ConnectionStrings:Oylik.
+var provider = ServerDb.ParseProvider(builder.Configuration["Oylik:Database"]);
+var connection = builder.Configuration.GetConnectionString("Oylik");
+if (provider == DatabaseProvider.Sqlite && string.IsNullOrWhiteSpace(connection))
+    connection = "Data Source=data/oylik-server.db";
+else if (string.IsNullOrWhiteSpace(connection))
+    throw new InvalidOperationException(
+        "ConnectionStrings:Oylik berilmagan (env ConnectionStrings__Oylik) — PostgreSQL ulanish satri kerak (docs/server-postgres.md).");
+builder.Services.AddDbContext<ServerDb>(o =>
+{
+    if (provider == DatabaseProvider.Sqlite)
+        o.UseSqlite(connection);
+    else
+        o.UseNpgsql(connection);
+});
 
 builder.Services.ConfigureHttpJsonOptions(o =>
 {
@@ -50,11 +66,25 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ServerDb>();
-    var dataSource = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connection).DataSource;
-    if (Path.GetDirectoryName(Path.GetFullPath(dataSource)) is { } dir)
-        Directory.CreateDirectory(dir);
-    await db.Database.MigrateAsync();
-    await db.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL;");
+    if (provider == DatabaseProvider.Sqlite)
+    {
+        // Testlar / lokal sinov: migratsiyalar PostgreSQL uchun — SQLite'da sxema modeldan yaratiladi.
+        var dataSource = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connection).DataSource;
+        if (Path.GetDirectoryName(Path.GetFullPath(dataSource)) is { } dir)
+            Directory.CreateDirectory(dir);
+        await db.Database.EnsureCreatedAsync();
+        await db.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL;");
+    }
+    else
+    {
+        // Toza bazada EF Migrate tarix jadvalini yaratishdan oldin uni o'qiydi va zararsiz "Failed executing DbCommand"
+        // xatosini loglaydi (mijozni chalg'itadi) — jadvalni oldindan yaratamiz (CREATE TABLE IF NOT EXISTS).
+        // Baza o'zi yo'q bo'lsa (test) — MigrateAsync uni yaratadi; bu holatda tekshiruv kerak emas.
+        if (await db.GetService<IRelationalDatabaseCreator>().ExistsAsync())
+            await db.GetService<IHistoryRepository>().CreateIfNotExistsAsync();
+        await db.Database.MigrateAsync();
+    }
+    app.Logger.LogInformation("Baza: {Provider}", provider);
 }
 
 if (string.IsNullOrEmpty(app.Configuration["Oylik:RegistrationKey"]))

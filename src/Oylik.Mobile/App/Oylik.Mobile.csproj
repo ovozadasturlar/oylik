@@ -17,7 +17,7 @@
     <ApplicationTitle>Oylik Qorovul</ApplicationTitle>
     <ApplicationId>uz.oylik.qorovul</ApplicationId>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-    <ApplicationVersion>8</ApplicationVersion>
+    <ApplicationVersion>9</ApplicationVersion>
 
     <SupportedOSPlatformVersion>26.0</SupportedOSPlatformVersion>
 

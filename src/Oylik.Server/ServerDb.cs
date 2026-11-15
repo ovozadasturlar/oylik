@@ -120,8 +120,26 @@ public sealed class SeqCounter
     public long Value { get; set; }
 }
 
+/// <summary>Server bazasi provayderi (config <c>Oylik:Database</c>).</summary>
+public enum DatabaseProvider
+{
+    /// <summary>Prod (default): migratsiyalar shu provayder uchun.</summary>
+    Postgres,
+
+    /// <summary>Testlar / lokal sinov: sxema EnsureCreated bilan, migratsiyasiz.</summary>
+    Sqlite,
+}
+
 public sealed class ServerDb(DbContextOptions<ServerDb> options) : DbContext(options)
 {
+    /// <summary><c>postgres</c> (yoki bo'sh) | <c>sqlite</c>; boshqa qiymat — xato (jim default emas).</summary>
+    public static DatabaseProvider ParseProvider(string? value) => value?.Trim().ToLowerInvariant() switch
+    {
+        null or "" or "postgres" or "postgresql" or "npgsql" => DatabaseProvider.Postgres,
+        "sqlite" => DatabaseProvider.Sqlite,
+        _ => throw new InvalidOperationException($"Oylik:Database noto'g'ri: '{value}' (postgres | sqlite)"),
+    };
+
     public DbSet<Installation> Installations => Set<Installation>();
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<PairingCode> PairingCodes => Set<PairingCode>();
@@ -208,11 +226,18 @@ public sealed class ServerDb(DbContextOptions<ServerDb> options) : DbContext(opt
         v => new DateTimeOffset(v, TimeSpan.Zero));
 }
 
-/// <summary>`dotnet ef` uchun.</summary>
+/// <summary>
+/// `dotnet ef` uchun — migratsiyalar PostgreSQL uchun. Ulanish satri env <c>OYLIK_DESIGN_PG</c> dan (faqat
+/// <c>database update</c> kabi bazaga ulanadigan buyruqlarga kerak; <c>migrations add</c> ulanmaydi).
+/// </summary>
 public sealed class DesignTimeFactory : IDesignTimeDbContextFactory<ServerDb>
 {
+    public const string ConnectionVariable = "OYLIK_DESIGN_PG";
+
     public ServerDb CreateDbContext(string[] args) =>
         new(new DbContextOptionsBuilder<ServerDb>()
-            .UseSqlite($"Data Source={Path.Combine(Path.GetTempPath(), "oylik-server-design.db")}")
+            .UseNpgsql(Environment.GetEnvironmentVariable(ConnectionVariable) is { Length: > 0 } cs
+                ? cs
+                : "Host=localhost;Port=5432;Database=oylik;Username=oylik")
             .Options);
 }

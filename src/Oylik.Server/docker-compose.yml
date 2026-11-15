@@ -1,20 +1,43 @@
-# Ishga tushirish (repo ildizidan):
-#   OYLIK_REGISTRATION_KEY=<maxfiy-kalit> docker compose -f src/Oylik.Server/docker-compose.yml up -d --build
+# Ishga tushirish (repo ildizidan; avval .env.example → .env nusxa olib, qiymatlarni to'ldiring):
+#   docker compose -f src/Oylik.Server/docker-compose.yml up -d --build
+# O'z PostgreSQL'i bilan: `db` servisi (ma'lumot — oylik-pgdata volume'ida). `db` host portiga CHIQMAYDI — kompyuterdagi
+# boshqa PostgreSQL (masalan 5432) bilan to'qnashmaydi; server unga faqat compose ichki tarmog'idan (db:5432) ulanadi.
+# Mavjud tashqi PostgreSQL'ga ulanish (db servisisiz) — docker-compose.external-pg.yml (docs/server-postgres.md).
 # HTTPS uchun oldiga Caddy yoki Cloudflare Tunnel qo'yiladi (TZ 6).
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: oylik
+      POSTGRES_USER: oylik
+      # Bo'sh parol bilan postgres o'zi ishga tushmaydi (server ham kutib qoladi) — .env da OYLIK_DB_PASSWORD shart.
+      # (:? emas — external-pg override'da bu servis ishlatilmaydi, parol so'ralmasin.)
+      POSTGRES_PASSWORD: ${OYLIK_DB_PASSWORD:-}
+    volumes:
+      - oylik-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oylik -d oylik"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   oylik-server:
     build:
       context: ../..
       dockerfile: src/Oylik.Server/Dockerfile
     image: oylik-server:latest
-    container_name: oylik-server
+    container_name: ${OYLIK_CONTAINER_NAME:-oylik-server}
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "${OYLIK_PORT:-5000}:5000"
     environment:
       Oylik__RegistrationKey: ${OYLIK_REGISTRATION_KEY:?OYLIK_REGISTRATION_KEY berilishi shart}
-    volumes:
-      - oylik-data:/data
+      Oylik__Database: postgres
+      ConnectionStrings__Oylik: Host=db;Port=5432;Database=oylik;Username=oylik;Password=${OYLIK_DB_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
-  oylik-data:
+  oylik-pgdata:

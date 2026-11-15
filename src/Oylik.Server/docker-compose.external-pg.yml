@@ -1,0 +1,25 @@
+# Ixtiyoriy override: o'z `db` servisi o'rniga MAVJUD tashqi PostgreSQL (alohida `oylik` bazasi + user — docs/server-postgres.md).
+#   docker compose -f src/Oylik.Server/docker-compose.yml -f src/Oylik.Server/docker-compose.external-pg.yml up -d --build
+# (`db` servisi bu rejimda o'chiq — profil orqali; OYLIK_DB_PASSWORD kerak emas.)
+# .env:  OYLIK_DB_CONNECTION=Host=...;Port=5432;Database=oylik;Username=oylik;Password=...
+#   - PG host'da port ochgan bo'lsa: Host=host.docker.internal
+#   - PG boshqa compose'ning docker network'ida bo'lsa: Host=<pg konteyner/servis nomi> va pastdagi networks bloklarini oching
+#     (network nomi: docker inspect <pg-konteyner> --format "{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}")
+services:
+  db:
+    profiles: ["bundled-db"]   # ishga tushmaydi (faqat --profile bundled-db bilan)
+
+  oylik-server:
+    environment:
+      ConnectionStrings__Oylik: ${OYLIK_DB_CONNECTION:?OYLIK_DB_CONNECTION berilishi shart (tashqi PostgreSQL ulanish satri)}
+    depends_on: !reset {}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+#    networks:
+#      - default
+#      - pg
+#
+#networks:
+#  pg:
+#    external: true
+#    name: ${OYLIK_PG_NETWORK:?OYLIK_PG_NETWORK berilishi shart}

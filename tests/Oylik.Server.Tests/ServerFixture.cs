@@ -17,8 +17,11 @@ public sealed class FakeClock(DateTimeOffset now) : TimeProvider
     public override TimeZoneInfo LocalTimeZone { get; } = TimeZoneInfo.CreateCustomTimeZone("UZ", TimeSpan.FromHours(5), "UZ", "UZ");
 }
 
-/// <summary>Har test uchun alohida server va SQLite fayli.</summary>
-public sealed class TestServer : WebApplicationFactory<Program>
+/// <summary>
+/// Har test uchun alohida server va SQLite fayli (Oylik:Database=sqlite — EnsureCreated, migratsiyasiz).
+/// <paramref name="postgres"/> berilsa — o'sha PostgreSQL'da migratsiyalar bilan (opt-in, <see cref="PostgresTests"/>).
+/// </summary>
+public sealed class TestServer(string? postgres = null) : WebApplicationFactory<Program>
 {
     public const string RegistrationKey = "test-registration-key";
     private readonly string _dir = Path.Combine(Path.GetTempPath(), "oylik-server-tests-" + Guid.NewGuid().ToString("N"));
@@ -27,8 +30,17 @@ public sealed class TestServer : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        Directory.CreateDirectory(_dir);
-        builder.UseSetting("ConnectionStrings:Oylik", $"Data Source={Path.Combine(_dir, "server.db")}");
+        if (postgres is null)
+        {
+            Directory.CreateDirectory(_dir);
+            builder.UseSetting("Oylik:Database", "sqlite");
+            builder.UseSetting("ConnectionStrings:Oylik", $"Data Source={Path.Combine(_dir, "server.db")}");
+        }
+        else
+        {
+            builder.UseSetting("Oylik:Database", "postgres");
+            builder.UseSetting("ConnectionStrings:Oylik", postgres);
+        }
         builder.UseSetting("Oylik:RegistrationKey", RegistrationKey);
         builder.ConfigureTestServices(s => s.AddSingleton<TimeProvider>(Clock));
     }

@@ -7,11 +7,11 @@ Avval `docs/TZ.md` ni o'qi. Qoidalar (4-bo'lim: R, A, H) o'zgartirilmaydi — sa
 - Pul — `long` (so'm), Kun — `decimal`, vaqt — `DateTimeOffset` (UTC saqlanadi).
 - UI matnlari faqat `src/Oylik.Desktop/Resources/Strings.cs` da.
 - Namuna Excel: `docs/sample.xlsx` — sintetik (o'ylab topilgan ismlar), mijoz Excel tuzilmasida; `docs/make_sample.py` yasaydi. Haqiqiy mijoz fayli `docs/namuna.xlsx` faqat lokal (.gitignore) — repoga va kodga mijoz xodimlari ismlari kirmasin (repo public).
-- Server: `docker compose -f src/Oylik.Server/docker-compose.yml up -d --build` → http://localhost:5000. Ro'yxat kaliti `src/Oylik.Server/.env` da (namuna `.env.example`) — qiymatini hech qayerga yozmang.
+- Server: `src/Oylik.Server/.env` da (namuna `.env.example`) `OYLIK_REGISTRATION_KEY` va `OYLIK_DB_PASSWORD`, so'ng `docker compose -f src/Oylik.Server/docker-compose.yml up -d --build` → http://localhost:5000 (`/api/health`). Baza — compose ichidagi PostgreSQL (volume `oylik-pgdata`); mavjud tashqi PG uchun `docker-compose.external-pg.yml`; tafsilot `docs/server-postgres.md`. Maxfiy qiymatlar hech qayerga yozilmaydi.
 - Server migratsiyasi: `dotnet ef migrations add <Name> -p src/Oylik.Server -s src/Oylik.Server`.
 - Desktop↔server sinxronizatsiya mantig'i: `src/Oylik.Data/Sync` (UI'siz; `tests/Oylik.Server.Tests` da testlanadi).
 - Mobil: `Oylik.Mobile.sln`; APK: `dotnet publish src/Oylik.Mobile/App/Oylik.Mobile.csproj -c Release -f net10.0-android` → `src/Oylik.Mobile/publish/`. Imzo kaliti `src/Oylik.Mobile/App/signing/` — yo'qotilmasin (yangilanishlar shu kalit bilan).
-- Publish: `dotnet publish src/Oylik.Desktop -c Release -r win-x64 -o publish` → bitta `Oylik.exe`.
+- Publish: desktop `dotnet publish src/Oylik.Desktop -c Release -r win-x64 -o publish` → bitta `Oylik.exe`; agent `dotnet publish src/Oylik.Agent -c Release -r win-x64 -o publish/agent` → `Oylik.Agent.exe` (tray, Startup'ga qo'yiladi).
 - Sinov ma'lumotlari: `OYLIK_HOME=<papka>` muhit o'zgaruvchisi `%LOCALAPPDATA%\Oylik` o'rniga ishlatiladi.
 - UI'ni ko'rish: `Oylik.exe --snapshot <papka> [--seed docs/sample.xlsx] [--lang uz-Latn|uz-Cyrl|ru] [--theme light|dark] [--switch-lang ru] [--switch-theme dark]` — har ekranni PNG ga chizadi va chiqadi (`OYLIK_HOME` bilan ishlating).
 

@@ -48,15 +48,15 @@ Snapshot: `--lang uz-Latn|uz-Cyrl|ru --theme light|dark`; jonli almashish isboti
 
 ## Server (2-bosqich)
 
-1. Ro'yxatdan o'tish kalitini tayyorlang: `src/Oylik.Server/.env.example` → `src/Oylik.Server/.env` nusxa oling va `OYLIK_REGISTRATION_KEY=` ga uzun tasodifiy qiymat yozing. `.env` maxfiy — tarqatmang.
+1. Kalit va parolni tayyorlang: `src/Oylik.Server/.env.example` → `src/Oylik.Server/.env` nusxa oling va `OYLIK_REGISTRATION_KEY=`, `OYLIK_DB_PASSWORD=` ga uzun tasodifiy qiymatlar yozing. `.env` maxfiy — tarqatmang.
 2. Ishga tushirish (repo ildizidan):
 
    ```
    docker compose -f src/Oylik.Server/docker-compose.yml up -d --build
    ```
 
-   Server `http://localhost:5000` da (`/api/health`). Ma'lumotlar `oylikserver_oylik-data` volume'ida (SQLite). Internetga HTTPS orqali chiqarish uchun oldiga Caddy yoki Cloudflare Tunnel qo'yiladi.
-   Docker'siz: `dotnet run --project src/Oylik.Server` (kalit: `Oylik__RegistrationKey` muhit o'zgaruvchisi).
+   Server `http://localhost:5000` da (`/api/health`). Baza — compose ichidagi PostgreSQL (`db` servisi, host portiga chiqmaydi; ma'lumot `oylik-pgdata` volume'ida). Mavjud tashqi PostgreSQL bilan — [docs/server-postgres.md](docs/server-postgres.md). Internetga HTTPS orqali chiqarish uchun oldiga Caddy yoki Cloudflare Tunnel qo'yiladi.
+   Docker'siz: `dotnet run --project src/Oylik.Server` (muhit o'zgaruvchilari: `Oylik__RegistrationKey`, `ConnectionStrings__Oylik` — PostgreSQL; lokal sinov uchun `Oylik__Database=sqlite`).
 3. Desktop: **Sozlamalar → Server va telefon** — Server URL (telefon ham ulana oladigan manzil, masalan `http://192.168.1.10:5000` yoki `https://…`) va ro'yxatdan o'tish kaliti → **[Serverga ulash]**. Kompyuter ID bilan bir marta ro'yxatdan o'tadi; API kalit kompyuterda DPAPI bilan shifrlangan holda saqlanadi.
 4. Telefon: **[QR ko'rsatish]** → qorovul telefonida Oylik ilovasi QR'ni skanerlaydi (yoki server manzili va 6 xonali kodni qo'lda kiritadi). Bog'langan telefonlar shu yerda ko'rinadi, **[Uzish]** bilan o'chiriladi.
 5. **Davomat** ekrani: xodim × kun jadvali (soat, ranglar), Bugun paneli, «Tasdiqlash kerak» (Ketdi'siz Keldi, yetim Ketdi), kun tafsiloti — voqea qo'shish / bekor qilish (sabab majburiy, audit). Oylik ekranida «Davomat» ustuni (shu oyda davomat bo'lsa) — bosilsa kelgan kunlar **Кун** ga ko'chiriladi; avtomatik yozilmaydi.

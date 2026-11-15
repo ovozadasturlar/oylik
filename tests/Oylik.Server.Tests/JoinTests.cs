@@ -1,9 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Oylik.Contracts;
 
@@ -123,37 +120,5 @@ public sealed class JoinTests : IDisposable
         for (var i = 0; i < 7; i++)
             statuses.Add((await JoinAsync(installationId, $"{i:000000}")).StatusCode);
         statuses.Should().Contain(HttpStatusCode.TooManyRequests);
-    }
-
-    [Fact]
-    public void Migration_keeps_the_existing_desktop_key()
-    {
-        var dir = Path.Combine(Path.GetTempPath(), "oylik-server-migr-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(dir);
-        try
-        {
-            var options = new DbContextOptionsBuilder<ServerDb>().UseSqlite($"Data Source={Path.Combine(dir, "s.db")}").Options;
-            var id = Guid.NewGuid();
-            var hash = Secrets.Hash("old-desktop-key");
-            using (var db = new ServerDb(options))
-            {
-                db.GetService<IMigrator>().Migrate("20261114121301_EmployeeTabelNo"); // Bosqich 3 dan oldingi sxema
-                db.Database.ExecuteSql($"INSERT INTO Installations (Id, Name, ApiKeyHash, CreatedAt) VALUES ({id}, {"Korxona"}, {hash}, {123L})");
-            }
-            using (var db = new ServerDb(options))
-            {
-                db.Database.Migrate();
-                var key = db.ApiKeys.Single();
-                key.KeyHash.Should().Be(hash);
-                key.InstallationId.Should().Be(id);
-                key.SiteIndex.Should().Be(0);
-                db.Installations.Single().JoinCount.Should().Be(0);
-            }
-        }
-        finally
-        {
-            SqliteConnection.ClearAllPools();
-            try { Directory.Delete(dir, recursive: true); } catch (IOException) { }
-        }
     }
 }
